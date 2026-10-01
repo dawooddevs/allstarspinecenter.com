@@ -1,6 +1,13 @@
-# Manual FTP deploy to SiteGround.
-# Add repository secrets: FTP_HOST, FTP_USERNAME, FTP_PASSWORD and (optional) FTP_DIR (default /public_html/).
-# Then run it from GitHub → Actions → "Deploy to SiteGround" → Run workflow.
+# Deploy to SiteGround over SSH (rsync). Run from GitHub → Actions → "Deploy to SiteGround" → Run workflow.
+#
+# Repository secrets (Settings → Secrets and variables → Actions):
+#   SSH_HOST         e.g. ssh.ahrons20.sg-host.com   (Site Tools → Devs → SSH Keys Manager → SSH Credentials)
+#   SSH_USER         e.g. u1234-abcdefgh
+#   SSH_PRIVATE_KEY  the full private key text from SiteGround (-----BEGIN ... END-----)
+#   SSH_PASSPHRASE   the password you set when generating the key (leave unset if none)
+#   SSH_DIR          optional, defaults to www/ahrons20.sg-host.com/public_html/
+#
+# Never uploads or deletes: app/config.php, database/logs/sessions in app/storage, media in uploads/.
 name: Deploy to SiteGround
 
 on:
@@ -13,6 +20,11 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_DIR: ${{ secrets.SSH_DIR || 'www/ahrons20.sg-host.com/public_html/' }}
+      SSH_PORT: '18765'
     steps:
       - uses: actions/checkout@v4
 
@@ -30,24 +42,45 @@ jobs:
       - name: Build minified assets
         run: npm install --no-audit --no-fund && npm run build
 
-      - name: Upload over FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ${{ secrets.FTP_DIR || '/public_html/' }}
-          protocol: ftps
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            scripts/**
-            package.json
-            package-lock.json
-            README.md
-            app/config.php
-            app/storage/*.sqlite*
-            app/storage/*.log
-            app/storage/sessions/**
-            uploads/20*/**
+      - name: Prepare SSH key
+        env:
+          KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          PASSPHRASE: ${{ secrets.SSH_PASSPHRASE }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$KEY" | tr -d '\r' > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if [ -n "$PASSPHRASE" ]; then
+            ssh-keygen -p -q -P "$PASSPHRASE" -N "" -f ~/.ssh/deploy_key
+          fi
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          printf 'Host sg\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n' "$SSH_HOST" "$SSH_USER" "$SSH_PORT" > ~/.ssh/config
+
+      - name: Check target folder
+        run: |
+          echo "Target: $SSH_DIR"
+          ssh sg "cd '$SSH_DIR' && pwd && ls -la | head -40"
+          # Safety: only deploy into the folder that already holds this site
+          ssh sg "test -f '$SSH_DIR/index.php'" \
+            || { echo "::error::No index.php in $SSH_DIR — this does not look like the site's public_html. Set the SSH_DIR secret."; exit 1; }
+
+      - name: Upload changed files (rsync)
+        run: |
+          rsync -rlz --checksum --itemize-changes --omit-dir-times --no-perms --chmod=D755,F644 \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude 'node_modules/' \
+            --exclude 'scripts/' \
+            --exclude '.gitignore' \
+            --exclude 'package.json' \
+            --exclude 'package-lock.json' \
+            --exclude 'README.md' \
+            --exclude '/app/config.php' \
+            --exclude '/app/storage/*.sqlite*' \
+            --exclude '/app/storage/*.log' \
+            --exclude '/app/storage/sessions/' \
+            --exclude '/uploads/20*/' \
+            -e ssh ./ "sg:$SSH_DIR"
+
+      - name: Verify
+        run: ssh sg "cd '$SSH_DIR' && ls -la index.php app/config.php assets/css/site.min.css && php -l index.php"

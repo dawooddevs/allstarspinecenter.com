@@ -25,20 +25,15 @@ Point allstarspinecenter.com at the same files. The site detects its domain auto
 
 ---
 
-## 2. Deploying updates (FTP)
+## 2. Deploying updates (SSH / rsync)
 
-After FTP access is set up, updates can be pushed in either of these ways:
+Deploys run as the GitHub Action **"Deploy to SiteGround"** (manual: Actions → Deploy to SiteGround → Run workflow). It PHP-lints, rebuilds the minified assets and rsyncs only changed files over SSH (SiteGround port 18765).
 
-```bash
-# From any machine with lftp installed
-FTP_HOST=ftp.ahrons20.sg-host.com FTP_USER=… FTP_PASS=… FTP_DIR=/public_html ./scripts/deploy.sh
-# SiteGround SFTP:   FTP_PROTO=sftp FTP_PORT=18765 …
-# Preview only:      DRY_RUN=1 …
-```
+Repository secrets: `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`, `SSH_PASSPHRASE` (if the key has one) and optionally `SSH_DIR` (default `www/ahrons20.sg-host.com/public_html/`). Create the key in Site Tools → Devs → SSH Keys Manager.
 
-You can also use the GitHub Action **"Deploy to SiteGround"**. It runs manually and needs the repository secrets `FTP_HOST`, `FTP_USERNAME`, `FTP_PASSWORD` and optionally `FTP_DIR`.
+Deploys **never** upload or delete `app/config.php`, the database, sessions/logs or media in `uploads/` — content is always preserved, and the job refuses to run if the target folder doesn't already contain the site.
 
-Deploys **never** overwrite or delete `app/config.php`, the database, sessions or logs, or media in `uploads/`. All content stays intact.
+`scripts/deploy.sh` (lftp, FTP/SFTP) remains for manual use from a computer.
 
 ---
 
