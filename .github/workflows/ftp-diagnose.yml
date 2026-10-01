@@ -21,7 +21,15 @@ jobs:
           echo "probe $(date -u)" > probe.txt
           cp probe.txt .probe-dotfile
           echo "FTP_DIR secret is set to: [${D}]"
-          lftp -u "$U","$P" "ftp://$H" <<'EOF' || true
+          echo "=== Certificate presented by the FTP server ==="
+          openssl s_client -connect "$H:21" -starttls ftp -servername "$H" </dev/null 2>/dev/null | openssl x509 -noout -subject -ext subjectAltName | tee cert.txt
+          CN=$(sed -n 's/.*CN *= *\([^, ]*\).*/\1/p' cert.txt | head -1)
+          IP=$(getent hosts "$H" | awk '{print $1}' | head -1)
+          RDNS=$(getent hosts "$IP" | awk '{print $2}' | head -1)
+          echo "Server IP: $IP  reverse DNS: $RDNS"
+          case "$CN" in \*.*) CN="$RDNS";; esac
+          echo "Certificate host: $CN"
+          lftp -u "$U","$P" "ftp://$CN" <<'EOF' || true
           set ftp:ssl-allow yes
           set net:max-retries 1
           set net:timeout 20
