@@ -104,7 +104,6 @@ $svc = fn($slug) => url('service/' . $slug . '/');
         ] as $i => [$t, $s, $ic]): ?>
         <div class="discipline discipline--<?= $i ?>"><span class="discipline__icon"><?= icon($ic) ?></span><strong><?= e($t) ?></strong><small><?= e($s) ?></small></div>
         <?php endforeach; ?>
-        <div class="disciplines__center"><span><?= icon('heart-pulse') ?></span><strong>One team.<br>One plan.</strong></div>
       </div>
       <?php endif; ?>
     </div>

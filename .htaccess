@@ -12,7 +12,7 @@ DirectoryIndex index.php index.html
   # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
   # Block private folders and files
-  RewriteRule ^(app|scripts|node_modules)(/|$) - [F,L]
+  RewriteRule ^(app|scripts|docs|node_modules)(/|$) - [F,L]
   RewriteRule (^|/)\.(?!well-known) - [F,L]
   RewriteRule ^(README\.md|package(-lock)?\.json|composer\.(json|lock))$ - [F,L]
 

@@ -45,6 +45,7 @@ mirror --reverse --only-newer --no-perms --parallel=4 --verbose $DRY \
   --exclude-glob .github/ \
   --exclude-glob node_modules/ \
   --exclude-glob scripts/ \
+  --exclude-glob docs/ \
   --exclude-glob .gitignore \
   --exclude-glob .DS_Store \
   --exclude-glob package.json \

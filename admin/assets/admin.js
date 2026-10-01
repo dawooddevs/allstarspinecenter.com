@@ -1096,7 +1096,9 @@
 
   function viewMedia(view) {
     document.title = 'Media Library · ' + A.siteName;
-    view.innerHTML = header('Media Library', 'All images, PDFs and documents used on the website. Shift/Ctrl-click to select several.') + '<div class="media-layout"><div data-browser></div><div class="mdetail" data-detail></div></div>';
+    view.innerHTML = header('Media Library', 'All images, PDFs and documents used on the website. Shift/Ctrl-click to select several.', can('content.edit') ? '<button class="btn btn--primary" data-autoassign>' + ic('sparkles') + 'Auto-assign images</button>' : '') + '<div class="media-layout"><div data-browser></div><div class="mdetail" data-detail></div></div>';
+    var aa = $('[data-autoassign]', view);
+    if (aa) aa.addEventListener('click', autoAssign);
     var detail = $('[data-detail]', view);
     function showDetail(m) {
       if (!m) { detail.innerHTML = '<div class="card"><div class="empty-s">' + ic('image') + 'Select a file to see its details.</div></div>'; return; }
@@ -1124,6 +1126,37 @@
     }
     var browser = mediaBrowser($('[data-browser]', view), { onSelect: showDetail, onUploaded: function (m) { showDetail(m); } });
     showDetail(null);
+  }
+
+  /* Match uploaded images to treatments/pages/settings by file name */
+  function autoAssign() {
+    var body = el('<div><div class="notice notice--blue">' + ic('info') + '<span>Images are matched by file name: <b>shockwave-therapy.jpg</b> → Shockwave Therapy, <b>page-about-us.jpg</b> → About page, <b>location-gilbert.jpg</b>, <b>provider-dr-andre-silano.jpg</b>, <b>home-hero.jpg</b>, <b>home-integrated-care.jpg</b>, <b>social-share.jpg</b>, <b>logo.png</b>. Treatment titles also work as file names.</span></div>' +
+      '<label class="toggle" style="margin-bottom:14px"><span>Replace images that are already set</span><input type="checkbox" data-ow><span class="toggle__ui"></span></label><div data-res><div class="skel"></div></div></div>');
+    var res = $('[data-res]', body), ow = $('[data-ow]', body);
+    function render(d) {
+      if (!d.matches.length) { res.innerHTML = '<div class="empty-s">' + ic('image') + 'No matching file names found among ' + d.files + ' images. Upload images named after the treatment first.</div>'; return; }
+      var todo = d.matches.filter(function (m) { return m.status === 'will assign' || m.status === 'assigned'; }).length;
+      res.innerHTML = '<p class="muted" style="margin:0 0 10px">' + d.matches.length + ' matches · <strong style="color:var(--ink)">' + todo + '</strong> to assign</p><div class="card"><ul class="list">' + d.matches.map(function (m) {
+        var tone = m.status === 'assigned' || m.status === 'will assign' ? 'green' : m.status === 'already set' ? 'blue' : 'amber';
+        return '<li><img class="tbl-thumb" src="' + esc(m.thumb) + '" alt=""><div class="list__main"><strong>' + esc(m.label) + '</strong><small>' + esc(m.kind) + ' · ' + esc(m.file) + '</small></div><span class="pill pill--' + tone + '">' + esc(m.status) + '</span></li>';
+      }).join('') + '</ul></div>';
+    }
+    function preview() { res.innerHTML = '<div class="skel"></div>'; api('media.autoassign', { apply: false, overwrite: ow.checked }).then(render).catch(function (e) { res.innerHTML = '<div class="empty-s">' + esc(e.message) + '</div>'; }); }
+    ow.addEventListener('change', preview);
+    modal({
+      title: 'Auto-assign images', body: body, size: 'md',
+      buttons: [{ label: 'Close', value: null }, {
+        label: 'Assign images', cls: 'btn--primary', icon: 'check', onClick: function (close, btn) {
+          busy(btn, true);
+          api('media.autoassign', { apply: true, overwrite: ow.checked }).then(function (d) {
+            busy(btn, false); render(d);
+            var n = d.matches.filter(function (m) { return m.status === 'assigned'; }).length;
+            toast(n + ' image' + (n === 1 ? '' : 's') + ' assigned.');
+          }).catch(function (e) { busy(btn, false); toast(e.message, 'err'); });
+        }
+      }]
+    });
+    preview();
   }
 
   /* =====================================================================
