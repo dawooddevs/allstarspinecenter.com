@@ -85,7 +85,7 @@ function schema_statements(string $driver): array
             content {LONGTEXT} NULL,
             template VARCHAR(40) NOT NULL DEFAULT 'default',
             show_cta INT NOT NULL DEFAULT 1,
-            system INT NOT NULL DEFAULT 0,
+            is_system INT NOT NULL DEFAULT 0,
             needs_review INT NOT NULL DEFAULT 0,
             sort_order INT NOT NULL DEFAULT 0,
             status VARCHAR(20) NOT NULL DEFAULT 'published',

@@ -67,7 +67,7 @@ final class Settings
             'social_instagram' => '',
 
             // SEO
-            'seo_title_suffix' => ' | All Star Health Spine & Joint Care',
+            'seo_title_suffix' => ' | All Star Health',
             'seo_default_description' => 'Advanced non-surgical spine, joint and pain care in Gilbert and Tempe, AZ. Chiropractic, regenerative medicine, injections, rehab, injury care and more. Call 844-844-4755.',
             'seo_og_image' => '',
             'seo_noindex' => '1',

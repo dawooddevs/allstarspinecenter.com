@@ -1,0 +1,53 @@
+# Manual FTP deploy to SiteGround.
+# Add repository secrets: FTP_HOST, FTP_USERNAME, FTP_PASSWORD and (optional) FTP_DIR (default /public_html/).
+# Then run it from GitHub → Actions → "Deploy to SiteGround" → Run workflow.
+name: Deploy to SiteGround
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: PHP syntax check
+        run: find . -name '*.php' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build minified assets
+        run: npm install --no-audit --no-fund && npm run build
+
+      - name: Upload over FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_DIR || '/public_html/' }}
+          protocol: ftps
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            scripts/**
+            package.json
+            package-lock.json
+            README.md
+            app/config.php
+            app/storage/*.sqlite*
+            app/storage/*.log
+            app/storage/sessions/**
+            uploads/20*/**

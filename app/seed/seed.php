@@ -134,7 +134,7 @@ function seed_database(): void
     // ---------- Pages ----------
     foreach (seed_pages() as $i => $p) {
         DB::insert('pages', array_merge([
-            'eyebrow' => '', 'intro' => '', 'image' => '', 'content' => '', 'template' => 'default', 'show_cta' => 1, 'system' => 0,
+            'eyebrow' => '', 'intro' => '', 'image' => '', 'content' => '', 'template' => 'default', 'show_cta' => 1, 'is_system' => 0,
             'needs_review' => 0, 'status' => 'published', 'meta_title' => '', 'meta_description' => '',
         ], $p, ['sort_order' => ($i + 1) * 10, 'created_at' => $now, 'updated_at' => $now]));
     }
@@ -153,50 +153,50 @@ function seed_pages(): array
 {
     return [
         [
-            'slug' => 'about-us', 'title' => 'About All Star Health', 'eyebrow' => 'About Us', 'template' => 'about', 'system' => 1,
+            'slug' => 'about-us', 'title' => 'About All Star Health', 'eyebrow' => 'About Us', 'template' => 'about', 'is_system' => 1,
             'intro' => 'For more than 28 years, All Star Health Spine & Joint Care has helped patients across Gilbert, Tempe, Chandler, Mesa and surrounding Arizona communities live with less pain and move with more freedom.',
             'content' => '<h2>Integrated care under one roof</h2><p>Since approximately 1997, we have served our community with a patient-oriented approach to pain relief. Our team brings together board-certified medical providers, chiropractors, pain care specialists and physiotherapy and rehabilitation professionals — with more than 150 combined years of clinical experience.</p><p>Pain symptoms may be common, but the cause is different for every person. That is why we evaluate the whole patient and provide integrated, non-surgical care focused on pain relief, mobility, function and education.</p><h2>Our approach</h2><ul><li>Non-surgical orthopedic interventions</li><li>Chiropractic care</li><li>Tailored home physiotherapy programs</li><li>Patient education at every step</li></ul><p>Everything we do is focused on relieving pain, restoring mobility and improving quality of life.</p>',
             'meta_title' => 'About Us — Integrated Spine, Joint & Pain Care Since 1997',
             'meta_description' => 'All Star Health Spine & Joint Care has served Gilbert, Tempe, Chandler and Mesa for 28+ years with integrated, non-surgical spine, joint and pain care.',
         ],
         [
-            'slug' => 'our-doctor', 'title' => 'Meet Our Providers', 'eyebrow' => 'Our Team', 'template' => 'providers', 'system' => 1,
+            'slug' => 'our-doctor', 'title' => 'Meet Our Providers', 'eyebrow' => 'Our Team', 'template' => 'providers', 'is_system' => 1,
             'intro' => 'Medical providers, chiropractors and rehabilitation professionals working together on your care — with more than 150 years of combined clinical experience.',
             'meta_title' => 'Meet Our Providers — Chiropractors, Physicians & PAs',
             'meta_description' => 'Meet the All Star Health care team: chiropractors, a family medicine physician and physician assistants serving Gilbert and Tempe, AZ.',
         ],
         [
-            'slug' => 'testimonials', 'title' => 'Patient Stories', 'eyebrow' => 'Testimonials', 'template' => 'testimonials', 'system' => 1,
+            'slug' => 'testimonials', 'title' => 'Patient Stories', 'eyebrow' => 'Testimonials', 'template' => 'testimonials', 'is_system' => 1,
             'intro' => 'Hear from patients who have trusted All Star Health with their care.',
             'meta_title' => 'Patient Testimonials',
             'meta_description' => 'Read what patients say about their care at All Star Health Spine & Joint Care in Gilbert and Tempe, Arizona.',
         ],
         [
-            'slug' => 'pain-treatments', 'title' => 'Pain Treatments', 'eyebrow' => 'All Treatments', 'template' => 'treatments', 'system' => 1,
+            'slug' => 'pain-treatments', 'title' => 'Pain Treatments', 'eyebrow' => 'All Treatments', 'template' => 'treatments', 'is_system' => 1,
             'intro' => 'Explore every treatment we offer — from regenerative medicine and injections to chiropractic, soft tissue, injury and allergy care.',
             'meta_title' => 'Pain Treatments — Non-Surgical Spine, Joint & Pain Care',
             'meta_description' => 'Browse all non-surgical treatments at All Star Health: injections, regenerative medicine, shockwave, spinal decompression, chiropractic, soft tissue, injury and allergy care.',
         ],
         [
-            'slug' => 'make-appointment', 'title' => 'Request an Appointment', 'eyebrow' => 'Patient Center', 'template' => 'appointment', 'system' => 1, 'show_cta' => 0,
+            'slug' => 'make-appointment', 'title' => 'Request an Appointment', 'eyebrow' => 'Patient Center', 'template' => 'appointment', 'is_system' => 1, 'show_cta' => 0,
             'intro' => 'Tell us a little about what\'s going on and our team will reach out to confirm a time. Same-day appointments are available when possible.',
             'meta_title' => 'Request an Appointment',
             'meta_description' => 'Request an appointment at All Star Health in Gilbert or Tempe, AZ. Same-day appointments when available. Call or text 844-844-4755.',
         ],
         [
-            'slug' => 'contact-us', 'title' => 'Contact Us', 'eyebrow' => 'Contact', 'template' => 'contact', 'system' => 1, 'show_cta' => 0,
+            'slug' => 'contact-us', 'title' => 'Contact Us', 'eyebrow' => 'Contact', 'template' => 'contact', 'is_system' => 1, 'show_cta' => 0,
             'intro' => 'Call, text or send us a message — our team is here to help you find the right place to start.',
             'meta_title' => 'Contact Us — Gilbert & Tempe Offices',
             'meta_description' => 'Contact All Star Health Spine & Joint Care. Call or text 844-844-4755. Offices in Gilbert and Tempe, Arizona.',
         ],
         [
-            'slug' => 'locations', 'title' => 'Our Locations', 'eyebrow' => 'Locations', 'template' => 'locations', 'system' => 1,
+            'slug' => 'locations', 'title' => 'Our Locations', 'eyebrow' => 'Locations', 'template' => 'locations', 'is_system' => 1,
             'intro' => 'Two convenient Arizona offices serving Gilbert, Tempe, Chandler, Mesa and the surrounding communities.',
             'meta_title' => 'Locations — Gilbert & Tempe, AZ',
             'meta_description' => 'Visit All Star Health in Gilbert (2730 S Val Vista Dr #188) or Tempe (6625 S Rural Rd #104). Hours, directions and maps.',
         ],
         [
-            'slug' => 'billing-and-insurance', 'title' => 'Billing & Insurance', 'eyebrow' => 'Patient Center', 'template' => 'billing', 'system' => 1,
+            'slug' => 'billing-and-insurance', 'title' => 'Billing & Insurance', 'eyebrow' => 'Patient Center', 'template' => 'billing', 'is_system' => 1,
             'intro' => 'Not sure what your insurance covers? Start with a complimentary benefits check — we\'ll verify your coverage and explain your options.',
             'content' => '<p>Our insurance team works with most major commercial plans and Medicare. Before your first visit, we can verify your coverage, explain the benefits that may apply and help you understand your care options. If a service is not covered, we\'ll discuss payment options before treatment begins.</p>',
             'meta_title' => 'Billing & Insurance — Complimentary Benefits Check',
@@ -229,7 +229,7 @@ function seed_pages(): array
             'meta_title' => 'Terms & Conditions', 'meta_description' => 'Terms and conditions for the All Star Health Spine & Joint Care website.',
         ],
         [
-            'slug' => 'sitemap', 'title' => 'Sitemap', 'eyebrow' => 'Sitemap', 'template' => 'sitemap', 'system' => 1, 'show_cta' => 0,
+            'slug' => 'sitemap', 'title' => 'Sitemap', 'eyebrow' => 'Sitemap', 'template' => 'sitemap', 'is_system' => 1, 'show_cta' => 0,
             'intro' => 'Every page on the All Star Health website in one place.',
             'meta_title' => 'Sitemap', 'meta_description' => 'A complete list of pages on the All Star Health Spine & Joint Care website.',
         ],

@@ -136,7 +136,7 @@ final class DB
             if (self::$driver === 'sqlite') {
                 return (bool)self::val("SELECT name FROM sqlite_master WHERE type='table' AND name = ?", [$table]);
             }
-            return (bool)self::val('SHOW TABLES LIKE ?', [$table]);
+            return (bool)self::val('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?', [$table]);
         } catch (Throwable $e) {
             return false;
         }
