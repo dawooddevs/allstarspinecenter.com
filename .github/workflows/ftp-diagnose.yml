@@ -1,0 +1,46 @@
+# Temporary: diagnoses FTP upload problems. Uploads three tiny probe files and deletes them.
+name: FTP diagnostics
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install lftp
+        run: sudo apt-get update -q && sudo apt-get install -y -q lftp
+
+      - name: Probe FTP server
+        env:
+          H: ${{ secrets.FTP_HOST }}
+          U: ${{ secrets.FTP_USERNAME }}
+          P: ${{ secrets.FTP_PASSWORD }}
+          D: ${{ secrets.FTP_DIR }}
+        run: |
+          echo "probe $(date -u)" > probe.txt
+          cp probe.txt .probe-dotfile
+          echo "FTP_DIR secret is set to: [${D}]"
+          lftp -u "$U","$P" "ftp://$H" <<'EOF' || true
+          set ftp:ssl-allow yes
+          set net:max-retries 1
+          set net:timeout 20
+          debug 3
+          echo "=== Login directory ==="
+          pwd
+          echo "=== Listing of login directory ==="
+          cls -la
+          echo "=== Upload plain file to login directory ==="
+          put probe.txt -o zz-deploy-probe.txt
+          echo "=== Upload into existing subfolder assets/ ==="
+          put probe.txt -o assets/zz-deploy-probe.txt
+          echo "=== Upload a dot-file (like .htaccess) ==="
+          put .probe-dotfile -o .zz-deploy-probe
+          echo "=== After uploads ==="
+          cls -la zz-deploy-probe.txt assets/zz-deploy-probe.txt .zz-deploy-probe
+          echo "=== Cleanup ==="
+          rm -f zz-deploy-probe.txt
+          rm -f assets/zz-deploy-probe.txt
+          rm -f .zz-deploy-probe
+          bye
+          EOF
