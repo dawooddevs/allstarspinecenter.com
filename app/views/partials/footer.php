@@ -59,7 +59,8 @@ $socialLabels = ['facebook' => 'Facebook', 'x-social' => 'X (Twitter)', 'instagr
       <p>&copy; <?= date('Y') ?> <strong><?= e(setting('site_name')) ?></strong>. All rights reserved.</p>
       <ul>
         <li><a href="<?= e(url('privacy-policy/')) ?>">Privacy Policy</a></li>
-        <li><a href="<?= e(url('terms-and-conditions/')) ?>">Terms &amp; Conditions</a></li>
+        <li><a href="<?= e(url('terms-and-conditions/')) ?>">Terms of Use</a></li>
+        <li><a href="<?= e(url('medical-disclaimer/')) ?>">Medical Disclaimer</a></li>
         <li><a href="<?= e(url('sitemap/')) ?>">Sitemap</a></li>
         <?php if (setting('cookie_notice') === '1'): ?><li><button type="button" class="linklike" data-cookie-reset>Cookie settings</button></li><?php endif; ?>
       </ul>

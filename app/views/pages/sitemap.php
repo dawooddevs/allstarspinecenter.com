@@ -2,7 +2,7 @@
 /** @var array $page HTML sitemap */
 Seo::set(['title' => $page['meta_title'] ?: $page['title'], 'description' => $page['meta_description'], 'canonical' => abs_url('sitemap/')]);
 partial('inner-hero', ['title' => $page['title'], 'eyebrow' => $page['eyebrow'], 'text' => $page['intro'], 'crumbs' => [['Sitemap', 'sitemap/']], 'showActions' => false]);
-$pages = DB::all("SELECT slug, title FROM pages WHERE status = 'published' ORDER BY sort_order, title");
+$pages = DB::all("SELECT slug, title FROM pages WHERE status = 'published' AND slug NOT IN ('thank-you','new-patient-thank-you') ORDER BY sort_order, title");
 ?>
 <section class="section section--tight">
   <div class="container sitemap-grid">

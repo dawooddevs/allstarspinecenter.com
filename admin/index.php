@@ -16,7 +16,7 @@ $v = fn($f) => url('admin/assets/' . $f) . '?v=' . substr((string)@filemtime(__D
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Dashboard · <?= e(setting('site_short_name')) ?></title>
-  <link rel="icon" href="<?= e(setting('favicon') ? media_url(setting('favicon')) : url('assets/img/favicon.svg')) ?>">
+  <link rel="icon" href="<?= e(setting('favicon') ? media_url(setting('favicon')) : url('assets/img/favicon.png')) ?>">
   <link rel="preload" href="<?= e(url('assets/fonts/plus-jakarta-sans-normal.woff2')) ?>" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="<?= e($v('admin.css')) ?>">
   <script>

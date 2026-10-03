@@ -129,9 +129,7 @@ final class Seo
             'areaServed' => array_map(fn($c) => ['@type' => 'City', 'name' => trim($c) . ', AZ'], explode(',', (string)setting('communities'))),
             'location' => $locs,
         ];
-        if (setting('logo')) {
-            $org['logo'] = abs_url(setting('logo'));
-        }
+        $org['logo'] = abs_url(setting('logo') ?: 'assets/img/logo.png');
         if ($same) {
             $org['sameAs'] = $same;
         }

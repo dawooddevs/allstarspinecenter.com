@@ -33,6 +33,8 @@ Repository secrets: `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`, `SSH_PASSPHRASE` 
 
 Deploys **never** upload or delete `app/config.php`, the database, sessions/logs or media in `uploads/` — content is always preserved, and the job refuses to run if the target folder doesn't already contain the site.
 
+After uploading, the job runs `php app/cli/migrate.php` on the server. It applies any new **content migrations** in `app/migrations/`, which are one-time, versioned database updates such as the October 2026 import of the old WordPress copy. Each migration runs once, and the applied list is stored in the `settings` table. Use `--list` to see their status and `--rerun=<id>` to apply one again.
+
 `scripts/deploy.sh` (lftp, FTP/SFTP) remains for manual use from a computer.
 
 ---
@@ -64,18 +66,18 @@ The chat/text widget, GA4 ID and tracking pixels go on the same screen.
 
 ---
 
-## 4. Content still to supply
+## 4. Content status
 
-The current site was not reachable from the build environment, so treatment and provider copy is careful, brief-compliant starter text (no guaranteed outcomes or invented credentials). Each item is flagged **Needs content review** on the dashboard. Before launch:
+The copy from the previous WordPress site (treatments, provider bios, About, Billing, legal pages, testimonials and FAQs) was imported by `app/migrations/2026_10_03_001_wp_content_import.php`. The source text is in `app/content/wp/`. It was edited for grammar, and template filler and unsupported claims were removed. **PENS / Dry Needling** and **IV Therapy** keep their starter copy and are still flagged *Needs content review*, because the old pages were placeholder or "coming soon" text.
 
-- [ ] Paste the original treatment descriptions (cleaned up) and untick *Needs content review*
-- [ ] Provider photos, bios, education and verified credentials
-- [ ] Original testimonial wording (seeded as drafts with the existing names)
-- [ ] Official logo and favicon (Settings → Branding); adjust brand colours to match the logo
-- [ ] Hero and office photography
-- [ ] The five patient-form PDFs (Settings → Patient Forms)
-- [ ] GoHighLevel embeds or webhook, chat widget, social links
-- [ ] Confirm the items in section 11 of the brief (IV Therapy URL, Wharton's Jelly / Prolotherapy, 4th statistic, cookie notice, newsletter)
+Provider headshots and the four new-patient/accident PDFs are copied from the old site by `2026_10_03_002_legacy_media.php` when the server can reach it. If it can't, upload them in the dashboard.
+
+Still to do before launch:
+
+- [ ] Hero, treatment and office photography (see `docs/image-prompts/`, then Media → Auto-assign images)
+- [ ] Pain questionnaire PDFs (Settings → Patient Forms)
+- [ ] GoHighLevel embeds or webhook, chat widget
+- [ ] Confirm the items in section 11 of the brief (IV Therapy, 4th statistic, cookie notice, newsletter)
 - [ ] Turn off "Hide from search engines" at launch
 
 ---
@@ -89,6 +91,9 @@ app/                   Application code (blocked from the web)
   bootstrap.php        Config, autoload, DB connection
   schema.php           Tables (MySQL + SQLite)
   seed/                Initial content from the brief
+  content/wp/          Copy imported from the old WordPress site
+  migrations/          One-time content migrations (run by app/cli/migrate.php)
+  cli/                 install.php, migrate.php
   lib/                 DB, Auth (roles/CSRF), Html sanitizer, Media, Forms, Seo, Content, Resources
   views/               Layout, partials and page templates
   storage/             SQLite DB (if used), sessions, logs (not deployed)

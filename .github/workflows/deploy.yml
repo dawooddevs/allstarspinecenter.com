@@ -8,6 +8,7 @@
 #   SSH_DIR          optional, defaults to www/ahrons20.sg-host.com/public_html/
 #
 # Never uploads or deletes: app/config.php, database/logs/sessions in app/storage, media in uploads/.
+# After uploading, pending content migrations (app/migrations/) are run once on the server.
 name: Deploy to SiteGround
 
 on:
@@ -85,3 +86,7 @@ jobs:
 
       - name: Verify
         run: ssh sg "cd '$SSH_DIR' && ls -la index.php app/config.php assets/css/site.min.css && php -l index.php"
+
+      # One-time content updates in app/migrations/ (each runs once; see app/cli/migrate.php)
+      - name: Run content migrations
+        run: ssh sg "cd '$SSH_DIR' && php app/cli/migrate.php"

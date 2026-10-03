@@ -6,6 +6,9 @@ Seo::set([
     'canonical' => abs_url($page['slug'] . '/'),
     'image' => $page['image'],
 ]);
+if (in_array($page['slug'], ['thank-you', 'new-patient-thank-you'], true)) {
+    Seo::$noindex = true; // form confirmation pages stay out of search results
+}
 partial('inner-hero', [
     'title' => $page['title'],
     'eyebrow' => $page['eyebrow'],

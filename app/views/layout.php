@@ -21,8 +21,9 @@ $gaId = preg_replace('/[^A-Za-z0-9\-]/', '', (string)setting('ga_id'));
   <?php if ($favicon): ?>
   <link rel="icon" href="<?= e(media_url($favicon)) ?>">
   <?php else: ?>
-  <link rel="icon" href="<?= e(url('assets/img/favicon.svg')) ?>" type="image/svg+xml">
+  <link rel="icon" href="<?= e(url('assets/img/favicon.png')) ?>" type="image/png">
   <?php endif; ?>
+  <link rel="apple-touch-icon" href="<?= e(url('assets/img/apple-touch-icon.png')) ?>">
   <?php if ($gaId): ?>
   <script async src="https://www.googletagmanager.com/gtag/js?id=<?= e($gaId) ?>"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','<?= e($gaId) ?>');</script>
