@@ -230,7 +230,7 @@ final class Content
         foreach (self::FORM_GROUPS as $gk => $g) {
             foreach ($g['items'] as &$f) {
                 $set = isset($f['setting']) ? trim((string)setting($f['setting'], '')) : '';
-                $path = $library[Media::matchKey($f['file'])]['path'] ?? null;
+                $path = Media::findByName($library, $f['file'])['path'] ?? null;
                 if ($set !== '') {
                     [$f['url'], $f['source']] = [media_url($set), 'setting'];
                 } elseif ($path) {
@@ -259,12 +259,13 @@ final class Content
 
     /**
      * Videos from the previous website. Each is found in the Media Library by its original file
-     * name (see Media::matchKey) unless a different file is chosen in Settings → Videos.
+     * name or one of its 'alt' names (see Media::matchKey), unless a different file is chosen in
+     * Settings → Videos.
      */
     public const VIDEOS = [
-        'patient-1' => ['file' => 'VID_20230522_135428707.mp4', 'setting' => 'video_patient_1', 'label' => 'Patient story 1'],
-        'patient-2' => ['file' => 'VID_20230523_104915424.mp4', 'setting' => 'video_patient_2', 'label' => 'Patient story 2'],
-        'patient-3' => ['file' => 'VID_20230503_111008824.mp4', 'setting' => 'video_patient_3', 'label' => 'Patient story 3'],
+        'patient-1' => ['file' => 'VID_20230522_135428707.mp4', 'alt' => ['What Our Patients Say Video 1.mp4'], 'setting' => 'video_patient_1', 'label' => 'Patient story 1'],
+        'patient-2' => ['file' => 'VID_20230523_104915424.mp4', 'alt' => ['What Our Patients Say Video 2.mp4'], 'setting' => 'video_patient_2', 'label' => 'Patient story 2'],
+        'patient-3' => ['file' => 'VID_20230503_111008824.mp4', 'alt' => ['What Our Patients Say Video 3.mp4'], 'setting' => 'video_patient_3', 'label' => 'Patient story 3'],
         'silano' => ['file' => '1_Silano-Testimonial.mp4', 'setting' => 'video_silano', 'label' => 'Testimonial video'],
     ];
 
@@ -280,7 +281,10 @@ final class Content
         $out = [];
         foreach (self::VIDEOS as $key => $v) {
             $set = trim((string)setting($v['setting'], ''));
-            $row = $library[Media::matchKey($v['file'])] ?? null;
+            $row = null;
+            foreach (array_merge([$v['file']], $v['alt'] ?? []) as $name) {
+                if ($row = Media::findByName($library, $name)) break;
+            }
             $path = $set !== '' ? $set : ($row['path'] ?? '');
             $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
             $out[$key] = $v + [

@@ -41,24 +41,40 @@ final class Media
         return self::$map[ltrim($path, '/')] ?? null;
     }
 
-    /**
-     * Normalised file-name key for matching uploads to files from the old site: case, spaces and
-     * punctuation are ignored, as are copy suffixes like "-1" or " (2)" ("WOMAC (1).pdf" = "WOMAC.pdf").
-     */
-    public static function matchKey(string $name): string
+    /** File-name key that ignores case, spaces and punctuation ("WOMAC.pdf" = "womac.pdf"). */
+    public static function exactKey(string $name): string
     {
-        return (string)preg_replace('/-\d{1,2}$/', '', substr(slugify(pathinfo($name, PATHINFO_FILENAME)), 0, 60));
+        return substr(slugify(pathinfo($name, PATHINFO_FILENAME)), 0, 60);
     }
 
-    /** Media rows of one kind keyed by matchKey() of both the original and stored names; newest upload wins. */
+    /** Looser key that also ignores copy suffixes like "-1" or " (2)" ("WOMAC (1).pdf" = "WOMAC.pdf"). */
+    public static function matchKey(string $name): string
+    {
+        return (string)preg_replace('/-\d{1,2}$/', '', self::exactKey($name));
+    }
+
+    /** Media rows of one kind indexed by exactKey() and matchKey() of the original and stored names; newest upload wins. */
     public static function byMatchKey(string $kind): array
     {
-        $out = [];
+        $out = ['exact' => [], 'loose' => []];
         foreach (DB::all('SELECT * FROM media WHERE kind = ? ORDER BY id', [$kind]) as $m) {
-            $out[self::matchKey((string)$m['original_name'])] = $m;
-            $out[self::matchKey(basename((string)$m['path']))] = $m;
+            foreach ([(string)$m['original_name'], basename((string)$m['path'])] as $n) {
+                $out['exact'][self::exactKey($n)] = $m;
+                $out['loose'][self::matchKey($n)] = $m;
+            }
         }
         return $out;
+    }
+
+    /**
+     * Find a file in a byMatchKey() index: the exact name first, then an upload whose name only adds a
+     * copy suffix ("WOMAC (1).pdf" for "WOMAC.pdf"). The wanted name itself is never shortened, so a
+     * missing "Video 2" can't fall back to "Video 1".
+     */
+    public static function findByName(array $index, string $name): ?array
+    {
+        $key = self::exactKey($name);
+        return $index['exact'][$key] ?? $index['loose'][$key] ?? null;
     }
 
     public static function upload(array $file, int $userId, string $folder = ''): array
