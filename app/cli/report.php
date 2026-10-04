@@ -1,7 +1,7 @@
 <?php
 /**
- * Read-only content report printed at the end of each deploy: which old-site videos and
- * patient-form PDFs were found in the Media Library, and the videos currently uploaded.
+ * Read-only content report printed at the end of each deploy: team photos, which old-site
+ * videos and patient-form PDFs were found in the Media Library, and the videos uploaded.
  *
  *   php app/cli/report.php
  */
@@ -11,6 +11,10 @@ if (PHP_SAPI !== 'cli') {
 require dirname(__DIR__) . '/bootstrap.php';
 if (!is_installed()) {
     exit(0);
+}
+echo "Team photos:\n";
+foreach (DB::all("SELECT name, photo FROM providers ORDER BY sort_order") as $p) {
+    printf("  %-22s %s\n", $p['name'], $p['photo'] ?: '(no photo)');
 }
 echo "Videos used on the site:\n";
 foreach (Content::videos() as $key => $v) {

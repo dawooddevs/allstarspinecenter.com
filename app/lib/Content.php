@@ -303,6 +303,37 @@ final class Content
         return array_values(array_filter(array_map(fn($k) => $all[$k] ?? null, $keys), fn($v) => $v && $v['url'] !== ''));
     }
 
+    /**
+     * Find a provider's headshot among image rows by name: every part of their name except titles,
+     * credentials and initials must appear in the file name ("Dr. Andre Silano.png",
+     * "andre-silano.jpg" and "provider-dr-andre-silano.webp" all match Dr. Andre Silano), falling
+     * back to the last name alone. Newest upload wins.
+     */
+    public static function providerPhotoMatch(array $provider, array $images): ?array
+    {
+        $skip = ['dr', 'doctor', 'md', 'dc', 'do', 'pa', 'pac', 'np', 'provider', 'headshot', 'photo', 'image', 'img'];
+        $words = fn(string $s): array => array_values(array_filter(explode('-', slugify($s)), fn($w) => strlen($w) > 1 && !in_array($w, $skip, true)));
+        $need = $words((string)$provider['name']);
+        if (!$need) {
+            return null;
+        }
+        // Full name first; then the last name alone (e.g. "Dr.-Krueger.png"), as last names are unique on the team.
+        foreach ([$need, [end($need)]] as $tokens) {
+            $best = null;
+            foreach ($images as $m) {
+                $name = pathinfo((string)($m['original_name'] ?: $m['path']), PATHINFO_FILENAME);
+                $have = array_merge($words($name), $words(pathinfo((string)$m['path'], PATHINFO_FILENAME)));
+                if (!array_diff($tokens, $have) && (!$best || (int)$m['id'] > (int)$best['id'])) {
+                    $best = $m;
+                }
+            }
+            if ($best) {
+                return $best;
+            }
+        }
+        return null;
+    }
+
     public static function hours(array $loc): array
     {
         return json_list($loc['hours'] ?? '[]');

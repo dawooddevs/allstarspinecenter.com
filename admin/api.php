@@ -468,8 +468,9 @@ try {
                     $alt($m, $site . ' ' . $r['name'] . ' office');
                 });
             }
+            $images = DB::all("SELECT * FROM media WHERE kind = 'image' ORDER BY id ASC");
             foreach (DB::all('SELECT id, slug, name, photo FROM providers') as $r) {
-                $add('Provider', $r['name'], (string)$r['photo'], $find(['provider-' . $r['slug'], $r['slug']]), function ($m) use ($r, $alt) {
+                $add('Provider', $r['name'], (string)$r['photo'], $find(['provider-' . $r['slug'], $r['slug']]) ?? Content::providerPhotoMatch($r, $images), function ($m) use ($r, $alt) {
                     DB::update('providers', ['photo' => $m['path'], 'updated_at' => now()], 'id = ?', [$r['id']]);
                     $alt($m, $r['name']);
                 });
