@@ -287,11 +287,10 @@ final class Resources
                 ['key' => 'body_scripts', 'label' => 'Extra code before </body>', 'type' => 'code'],
             ]],
             'forms' => ['label' => 'Patient Forms', 'icon' => 'file-text', 'fields' => [
-                ['key' => 'form_new_patient_en', 'label' => 'New Patient Forms — English', 'type' => 'file'],
+                ['key' => 'form_new_patient_en', 'label' => 'New Patient Forms — English', 'type' => 'file', 'help' => 'Optional. Leave empty to use the PDF in the Media Library with the same file name as on the old site. Questionnaire PDFs are always matched by file name.'],
                 ['key' => 'form_new_patient_es', 'label' => 'New Patient Forms — Spanish', 'type' => 'file'],
                 ['key' => 'form_accident_en', 'label' => 'Accident Forms — English', 'type' => 'file'],
                 ['key' => 'form_accident_es', 'label' => 'Accident Forms — Spanish', 'type' => 'file'],
-                ['key' => 'form_pain_questionnaire', 'label' => 'Pain Treatment Questionnaire Forms', 'type' => 'file'],
             ]],
             'social' => ['label' => 'Social', 'icon' => 'globe', 'fields' => [
                 ['key' => 'social_facebook', 'label' => 'Facebook URL', 'type' => 'text'],

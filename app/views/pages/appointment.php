@@ -55,6 +55,46 @@ partial('inner-hero', [
   </div>
 </section>
 
+<section class="section" id="patient-forms" aria-labelledby="forms-title">
+  <div class="container">
+    <div class="section-head section-head--center" data-reveal>
+      <p class="eyebrow">Patient forms</p>
+      <h2 id="forms-title" class="h2">Download Your <em>Forms</em></h2>
+      <p class="lead">Save time at check-in by downloading and completing your forms before your visit. All forms open as PDFs.</p>
+    </div>
+    <?php $groups = Content::formGroups(); ?>
+    <div class="fgroups">
+      <?php foreach (['patient', 'accident'] as $i => $key): $g = $groups[$key]; ?>
+      <article class="fgroup" data-reveal style="--d:<?= $i ?>">
+        <span class="fgroup__icon"><?= icon($g['icon']) ?></span>
+        <h3 class="fgroup__title"><?= e($g['title']) ?></h3>
+        <p class="fgroup__text"><?= e($g['text']) ?></p>
+        <div class="fgroup__btns">
+          <?php foreach ($g['items'] as $f): $lang = str_contains($f['label'], 'Spanish') ? 'Spanish' : 'English'; ?>
+          <a class="btn <?= $lang === 'English' ? '' : 'btn--outline' ?>" href="<?= e($f['url']) ?>" target="_blank" rel="noopener" aria-label="Download <?= e($f['label']) ?> (PDF)"><?= icon('download') ?><?= $lang === 'English' ? 'English' : 'Español' ?></a>
+          <?php endforeach; ?>
+        </div>
+      </article>
+      <?php endforeach; ?>
+    </div>
+    <?php $q = $groups['questionnaires']; ?>
+    <div class="fgroup fgroup--wide" id="pain-questionnaires" data-reveal>
+      <div class="fgroup__head">
+        <span class="fgroup__icon"><?= icon($q['icon']) ?></span>
+        <div>
+          <h3 class="fgroup__title"><?= e($q['title']) ?></h3>
+          <p class="fgroup__text"><?= e($q['text']) ?></p>
+        </div>
+      </div>
+      <ul class="qgrid">
+        <?php foreach ($q['items'] as $f): ?>
+        <li><a class="qlink" href="<?= e($f['url']) ?>" target="_blank" rel="noopener"><span class="qlink__icon"><?= icon('file-text') ?></span><span class="qlink__label"><?= e($f['label']) ?><small>PDF</small></span><?= icon('download') ?></a></li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+  </div>
+</section>
+
 <section class="section section--soft" id="patient-guide">
   <div class="container">
     <div class="section-head section-head--center" data-reveal>
@@ -65,29 +105,12 @@ partial('inner-hero', [
       <div class="tabs tabs--center" role="tablist" aria-label="Patient guide">
         <button class="tab is-active" role="tab" id="tab-visit" aria-controls="panel-visit" aria-selected="true">Your First Visit</button>
         <button class="tab" role="tab" id="tab-phases" aria-controls="panel-phases" aria-selected="false" tabindex="-1">Phase of Relief</button>
-        <button class="tab" role="tab" id="tab-forms" aria-controls="panel-forms" aria-selected="false" tabindex="-1">Patient Forms</button>
       </div>
       <div class="guide__panel card" role="tabpanel" id="panel-visit" aria-labelledby="tab-visit">
         <div class="prose"><?= $firstVisit ? Html::clean($firstVisit['content']) : '' ?></div>
       </div>
       <div class="guide__panel card" role="tabpanel" id="panel-phases" aria-labelledby="tab-phases" hidden>
         <div class="prose"><?= $phases ? Html::clean($phases['content']) : '' ?></div>
-      </div>
-      <div class="guide__panel card" role="tabpanel" id="panel-forms" aria-labelledby="tab-forms" hidden>
-        <div id="patient-forms">
-          <p>Save time at check-in by downloading and completing your forms before your visit.</p>
-          <ul class="doc-grid">
-            <?php foreach (Content::patientForms() as $f): ?>
-            <li>
-              <?php if ($f['available']): ?>
-              <a class="doc" href="<?= e($f['url']) ?>" target="_blank" rel="noopener"><span class="doc__icon"><?= icon('file-text') ?></span><span class="doc__label"><?= e($f['label']) ?></span><span class="doc__action"><?= icon('download') ?>Download</span></a>
-              <?php else: ?>
-              <div class="doc is-pending"><span class="doc__icon"><?= icon('file-text') ?></span><span class="doc__label"><?= e($f['label']) ?></span><span class="doc__action">Available at check-in</span></div>
-              <?php endif; ?>
-            </li>
-            <?php endforeach; ?>
-          </ul>
-        </div>
       </div>
     </div>
   </div>

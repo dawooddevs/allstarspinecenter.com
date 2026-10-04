@@ -132,10 +132,10 @@ try {
             if ($noImg) $health[] = ['level' => 'info', 'text' => "$noImg treatment(s) use the placeholder image", 'link' => '#/services'];
             $emptyT = (int)DB::val("SELECT COUNT(*) FROM testimonials WHERE content IS NULL OR content = ''");
             if ($emptyT) $health[] = ['level' => 'warn', 'text' => "$emptyT testimonial(s) need their original text", 'link' => '#/testimonials'];
-            $missingForms = count(array_filter(Content::patientForms(), fn($f) => !$f['available']));
-            if ($missingForms) $health[] = ['level' => 'warn', 'text' => "$missingForms patient form PDF(s) not uploaded", 'link' => '#/settings/forms'];
+            $oldForms = 0;
+            foreach (Content::formGroups() as $g) foreach ($g['items'] as $f) if ($f['source'] === 'old-site') $oldForms++;
+            if ($oldForms) $health[] = ['level' => 'warn', 'text' => "$oldForms patient form PDF(s) still link to the old website. Upload them to the Media Library with their original file names", 'link' => '#/settings/forms'];
             if (!setting('ghl_appointment_embed') && !setting('ghl_webhook_url')) $health[] = ['level' => 'warn', 'text' => 'GoHighLevel is not connected (built-in forms are active)', 'link' => '#/settings/integrations'];
-            if (!setting('logo')) $health[] = ['level' => 'info', 'text' => 'Using the built-in wordmark — upload the official logo', 'link' => '#/settings/branding'];
             if (setting('seo_noindex') === '1') $health[] = ['level' => 'info', 'text' => 'Search engines are blocked (staging mode)', 'link' => '#/settings/seo'];
             if (!setting('social_facebook') && !setting('social_instagram')) $health[] = ['level' => 'info', 'text' => 'Social media links are not set', 'link' => '#/settings/social'];
 

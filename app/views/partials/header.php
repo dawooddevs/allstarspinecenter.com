@@ -4,7 +4,7 @@ $locs = Content::locations();
 $byCat = Content::servicesByCategory();
 $menuServices = fn($cat) => array_values(array_filter($byCat[$cat] ?? [], fn($s) => (int)$s['show_in_menu'] === 1));
 $forms = Content::patientForms();
-$formUrl = fn($f) => $f['available'] ? $f['url'] : url('make-appointment/#patient-forms');
+$formUrl = fn($f) => $f['url'];
 $cur = fn($p) => rtrim($path ?? '', '/') === rtrim($p, '/') ? ' aria-current="page"' : '';
 $about = [
     ['About All Star Health', 'about-us/', 'Our story, mission and integrated approach', 'heart-pulse'],
@@ -116,7 +116,7 @@ $chiro = $menuServices('chiropractic');
                 <p class="dropdown__heading"><?= icon('file-text') ?>Patient Forms</p>
                 <ul>
                   <?php foreach ($forms as $f): ?>
-                  <li><a href="<?= e($formUrl($f)) ?>"<?= $f['available'] ? ' target="_blank" rel="noopener"' : '' ?>><?= icon('download') ?><?= e($f['label']) ?></a></li>
+                  <li><a href="<?= e($formUrl($f)) ?>"<?= $f['download'] ? ' target="_blank" rel="noopener"' : '' ?>><?= icon($f['download'] ? 'download' : 'file-text') ?><?= e($f['label']) ?></a></li>
                   <?php endforeach; ?>
                 </ul>
               </div>

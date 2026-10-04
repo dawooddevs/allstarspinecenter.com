@@ -174,20 +174,93 @@ final class Content
         return $map;
     }
 
+    /**
+     * Downloadable PDFs shown on /make-appointment/ (same groups and files as the old site).
+     * Each file is found in the Media Library by its original file name, so uploading a PDF
+     * with the same name links it automatically. A Patient Forms setting overrides the match;
+     * until a file is uploaded, the link points to the copy on the old website.
+     */
+    public const FORM_GROUPS = [
+        'patient' => [
+            'title' => 'Patient Forms', 'icon' => 'clipboard',
+            'text' => 'New patient paperwork. Complete it before your first visit to save time at check-in.',
+            'items' => [
+                ['label' => 'Patient Forms — English', 'file' => 'Updated-1-13-26-All-Star-Health-New-Patient-Form-English.pdf', 'old' => '2026/01', 'setting' => 'form_new_patient_en'],
+                ['label' => 'Patient Forms — Spanish', 'file' => 'Updated-1-13-26-All-Star-Health-New-Patient-Form-Spanish.pdf', 'old' => '2026/01', 'setting' => 'form_new_patient_es'],
+            ],
+        ],
+        'accident' => [
+            'title' => 'Accident Forms', 'icon' => 'car',
+            'text' => 'New patient paperwork with accident information, for car accident and injury visits.',
+            'items' => [
+                ['label' => 'Accident Forms — English', 'file' => 'Updated-1-13-26-All-Star-Health-New-Patient-Form-with-Accident-info-English.pdf', 'old' => '2026/01', 'setting' => 'form_accident_en'],
+                ['label' => 'Accident Forms — Spanish', 'file' => 'Updated-1-13-26-All-Star-Health-New-Patient-Form-Accident-Spanish.pdf', 'old' => '2026/01', 'setting' => 'form_accident_es'],
+            ],
+        ],
+        'questionnaires' => [
+            'title' => 'Pain Treatment Questionnaires', 'icon' => 'file-text',
+            'text' => 'Download the questionnaire for the area you are being treated for and bring it to your visit.',
+            'items' => [
+                ['label' => 'Knee & Hip Osteoarthritis Assessment (WOMAC)', 'file' => 'WOMAC.pdf', 'old' => '2025/04'],
+                ['label' => 'Low Back Pain Disability Questionnaire', 'file' => 'Modified-Oswestry-Low-Back-Pain-Disability-Questionnaire.pdf', 'old' => '2025/04'],
+                ['label' => 'Neck Pain & Function Questionnaire', 'file' => 'Neck-Disabilty-Index.pdf', 'old' => '2025/04'],
+                ['label' => 'Shoulder Pain & Disability Index (SPADI)', 'file' => 'Shoulder-Pain-and-Disability-Index-SPADI.pdf', 'old' => '2025/04'],
+                ['label' => 'Hip Function Assessment (HOS)', 'file' => 'Hip-Outcome-Score-HOS.pdf', 'old' => '2025/04'],
+                ['label' => 'Foot & Ankle Function Assessment', 'file' => 'Foot-and-Ankle-Ability-Measure.pdf', 'old' => '2025/04'],
+                ['label' => 'Tennis Elbow Self-Evaluation', 'file' => 'Patient-Rated-Tennis-Elbow-Evaluation.pdf', 'old' => '2025/04'],
+                ['label' => 'Wrist Pain & Function Questionnaire', 'file' => 'Patient-related-wrist-evaluation.pdf', 'old' => '2025/04'],
+                ['label' => 'Carpal Tunnel Questionnaire', 'file' => 'BCTQ.pdf', 'old' => '2026/08'],
+                ['label' => 'Plantar Fasciitis Pain/Disability Scale Questionnaire', 'file' => 'plantar-fasciitis-pain-disability-scale-questionnaire.pdf', 'old' => '2025/05'],
+            ],
+        ],
+    ];
+
+    private const OLD_UPLOADS = 'https://allstarspinecenter.com/wp-content/uploads/';
+
+    private static ?array $formGroups = null;
+
+    /** FORM_GROUPS with each item resolved to a url and its source: setting, library or old-site. */
+    public static function formGroups(): array
+    {
+        if (self::$formGroups !== null) {
+            return self::$formGroups;
+        }
+        // Match on the file name, ignoring case, punctuation and copy suffixes such as "WOMAC (1).pdf".
+        // Newer uploads win when the same form was uploaded twice.
+        $key = fn(string $name): string => preg_replace('/-\d+$/', '', substr(slugify(pathinfo($name, PATHINFO_FILENAME)), 0, 60));
+        $library = [];
+        foreach (DB::all("SELECT path, original_name FROM media WHERE kind = 'document' ORDER BY id") as $m) {
+            $library[$key((string)$m['original_name'])] = $m['path'];
+            $library[$key(basename((string)$m['path']))] = $m['path'];
+        }
+        $groups = [];
+        foreach (self::FORM_GROUPS as $gk => $g) {
+            foreach ($g['items'] as &$f) {
+                $set = isset($f['setting']) ? trim((string)setting($f['setting'], '')) : '';
+                $path = $library[$key($f['file'])] ?? null;
+                if ($set !== '') {
+                    [$f['url'], $f['source']] = [media_url($set), 'setting'];
+                } elseif ($path) {
+                    [$f['url'], $f['source']] = [media_url($path), 'library'];
+                } else {
+                    [$f['url'], $f['source']] = [self::OLD_UPLOADS . $f['old'] . '/' . $f['file'], 'old-site'];
+                }
+            }
+            unset($f);
+            $groups[$gk] = $g;
+        }
+        return self::$formGroups = $groups;
+    }
+
+    /** Short list for menus and sidebars: the four patient/accident PDFs plus a link to the questionnaires. */
     public static function patientForms(): array
     {
-        $forms = [
-            'form_new_patient_en' => 'New Patient Forms — English',
-            'form_new_patient_es' => 'New Patient Forms — Spanish',
-            'form_accident_en' => 'Accident Forms — English',
-            'form_accident_es' => 'Accident Forms — Spanish',
-            'form_pain_questionnaire' => 'Pain Treatment Questionnaire Forms',
-        ];
+        $g = self::formGroups();
         $out = [];
-        foreach ($forms as $k => $label) {
-            $file = (string)setting($k, '');
-            $out[] = ['key' => $k, 'label' => $label, 'url' => $file ? media_url($file) : '', 'available' => $file !== ''];
+        foreach (array_merge($g['patient']['items'], $g['accident']['items']) as $f) {
+            $out[] = ['label' => $f['label'], 'url' => $f['url'], 'available' => true, 'download' => true, 'source' => $f['source']];
         }
+        $out[] = ['label' => 'Pain Treatment Questionnaires', 'url' => url('make-appointment/#pain-questionnaires'), 'available' => true, 'download' => false, 'source' => 'page'];
         return $out;
     }
 

@@ -70,12 +70,14 @@ The chat/text widget, GA4 ID and tracking pixels go on the same screen.
 
 The copy from the previous WordPress site (treatments, provider bios, About, Billing, legal pages, testimonials and FAQs) was imported by `app/migrations/2026_10_03_001_wp_content_import.php`. The source text is in `app/content/wp/`. It was edited for grammar, and template filler and unsupported claims were removed. **PENS / Dry Needling** and **IV Therapy** keep their starter copy and are still flagged *Needs content review*, because the old pages were placeholder or "coming soon" text.
 
-Provider headshots and the four new-patient/accident PDFs are copied from the old site by `2026_10_03_002_legacy_media.php` when the server can reach it. If it can't, upload them in the dashboard.
+Provider headshots are copied from the old site by `2026_10_03_002_legacy_media.php` when the server can reach it. If it can't, upload them in the dashboard.
+
+**Patient forms** (`/make-appointment/#patient-forms`): the 14 PDFs from the old page are listed in `Content::FORM_GROUPS`. Each link uses the PDF in the Media Library with the same file name; case and copy suffixes like `WOMAC (1).pdf` are ignored. Until a file is uploaded, its link points to the copy on the old website, and the dashboard warns how many still do. Upload all 14 before the domain moves.
 
 Still to do before launch:
 
 - [ ] Hero, treatment and office photography (see `docs/image-prompts/`, then Media → Auto-assign images)
-- [ ] Pain questionnaire PDFs (Settings → Patient Forms)
+- [ ] Upload the 14 patient-form PDFs to the Media Library (original file names)
 - [ ] GoHighLevel embeds or webhook, chat widget
 - [ ] Confirm the items in section 11 of the brief (IV Therapy, 4th statistic, cookie notice, newsletter)
 - [ ] Turn off "Hide from search engines" at launch

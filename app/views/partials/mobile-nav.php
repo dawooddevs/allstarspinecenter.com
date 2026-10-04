@@ -43,7 +43,7 @@
           <a href="<?= e(url('billing-and-insurance/')) ?>">Billing &amp; Insurance</a>
           <p class="mnav__label">Patient Forms</p>
           <?php foreach ($forms as $f): ?>
-          <a href="<?= e($formUrl($f)) ?>"<?= $f['available'] ? ' target="_blank" rel="noopener"' : '' ?>><?= icon('download') ?><?= e($f['label']) ?></a>
+          <a href="<?= e($formUrl($f)) ?>"<?= $f['download'] ? ' target="_blank" rel="noopener"' : '' ?>><?= icon($f['download'] ? 'download' : 'file-text') ?><?= e($f['label']) ?></a>
           <?php endforeach; ?>
         </div>
       </div>

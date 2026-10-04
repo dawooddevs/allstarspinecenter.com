@@ -51,8 +51,10 @@ AddType font/woff2 .woff2
 AddType image/webp .webp
 AddType image/avif .avif
 
-# Allow larger media uploads in the dashboard (SiteGround honours these via .htaccess or php.ini)
+# Allow media uploads up to 100 MB. SiteGround (PHP-FPM) reads .user.ini; this block covers mod_php hosts.
 <IfModule mod_php.c>
-  php_value upload_max_filesize 32M
-  php_value post_max_size 34M
+  php_value upload_max_filesize 100M
+  php_value post_max_size 105M
+  php_value max_execution_time 300
+  php_value max_input_time 300
 </IfModule>

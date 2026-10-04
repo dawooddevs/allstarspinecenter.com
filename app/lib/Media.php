@@ -4,7 +4,7 @@
  */
 final class Media
 {
-    public const MAX_BYTES = 25 * 1024 * 1024;
+    public const MAX_BYTES = 100 * 1024 * 1024;
     public const MAX_DIMENSION = 2400;
 
     private const TYPES = [
@@ -53,7 +53,7 @@ final class Media
             throw new RuntimeException($codes[$file['error'] ?? 4] ?? 'Upload failed.');
         }
         if ($file['size'] > self::MAX_BYTES) {
-            throw new RuntimeException('File is larger than 25 MB.');
+            throw new RuntimeException('File is larger than 100 MB.');
         }
         $original = basename((string)$file['name']);
         $ext = strtolower(pathinfo($original, PATHINFO_EXTENSION));
