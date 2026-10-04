@@ -962,6 +962,31 @@ a.doc .doc__action { color: var(--accent); }
   .fgroup__btns .btn { flex: 1 1 140px; }
 }
 
+/* Videos (patient stories, testimonials) */
+.vgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; max-width: 900px; margin-inline: auto; }
+.vgrid--1 { grid-template-columns: minmax(0, 420px); justify-content: center; }
+.vgrid--2 { grid-template-columns: repeat(2, minmax(0, 360px)); justify-content: center; }
+.vcard { margin: 0; }
+.vcard__frame { position: relative; aspect-ratio: var(--ar, 9 / 16); max-height: 78vh; margin-inline: auto; border-radius: var(--r-lg); overflow: hidden; background: #0b1729; box-shadow: var(--shadow); isolation: isolate; }
+.vcard--wide .vcard__frame { --ar: 16 / 9; }
+.vcard__frame video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #0b1729; }
+.vcard__cap { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-weight: 650; font-size: .92rem; color: var(--ink); }
+.vcard__cap .icon { width: 15px; height: 15px; color: var(--accent); }
+.stories__quotes { margin-top: clamp(32px, 4vw, 48px); }
+.vfeature { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 64px); align-items: center; }
+.vfeature__text p:not(.eyebrow) { margin-top: 14px; color: var(--text); line-height: 1.65; }
+.vfeature__text .btn-row { margin-top: 24px; }
+@media (max-width: 900px) {
+  .vfeature { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .vgrid, .vgrid--2 { grid-template-columns: minmax(0, 1fr); max-width: 420px; }
+  .vgrid { gap: 24px; }
+}
+/* YouTube embeds inside page content */
+.prose .video-embed { position: relative; aspect-ratio: 16 / 9; margin: 1.5em 0; border-radius: var(--r-lg); overflow: hidden; background: #0b1729; box-shadow: var(--shadow); }
+.prose .video-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
 /* Contact */
 .contact-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
 .ccard { display: flex; flex-direction: column; gap: 4px; padding: 26px; border-radius: var(--r-lg); background: #fff; border: 1px solid var(--line); text-decoration: none; color: var(--ink); transition: all .35s var(--ease); }

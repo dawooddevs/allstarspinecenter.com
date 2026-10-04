@@ -135,6 +135,8 @@ try {
             $oldForms = 0;
             foreach (Content::formGroups() as $g) foreach ($g['items'] as $f) if ($f['source'] === 'old-site') $oldForms++;
             if ($oldForms) $health[] = ['level' => 'warn', 'text' => "$oldForms patient form PDF(s) still link to the old website. Upload them to the Media Library with their original file names", 'link' => '#/settings/forms'];
+            $noVideo = array_filter(Content::videos(), fn($v) => $v['source'] === 'missing');
+            if ($noVideo) $health[] = ['level' => 'warn', 'text' => count($noVideo) . ' video(s) from the old site not found in the Media Library: ' . implode(', ', array_map(fn($v) => $v['file'], $noVideo)), 'link' => '#/settings/videos'];
             if (!setting('ghl_appointment_embed') && !setting('ghl_webhook_url')) $health[] = ['level' => 'warn', 'text' => 'GoHighLevel is not connected (built-in forms are active)', 'link' => '#/settings/integrations'];
             if (setting('seo_noindex') === '1') $health[] = ['level' => 'info', 'text' => 'Search engines are blocked (staging mode)', 'link' => '#/settings/seo'];
             if (!setting('social_facebook') && !setting('social_instagram')) $health[] = ['level' => 'info', 'text' => 'Social media links are not set', 'link' => '#/settings/social'];

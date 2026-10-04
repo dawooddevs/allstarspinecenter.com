@@ -6,6 +6,12 @@ $whyAllergy = <<<'HTML'
 <p>What do allergies have to do with non-surgical orthopedic care? More than you might think. Seasonal, environmental and food allergies can trigger inflammation throughout the body. That inflammation does more than cause sneezing or itching. It can also aggravate joint pain, muscle stiffness and other orthopedic conditions. For some patients, undiagnosed allergies add to chronic inflammation that slows healing. Identifying and addressing these hidden triggers is part of our whole-body approach to reducing inflammation, improving mobility and supporting lasting relief.</p>
 HTML;
 
+// Product video shown on the Theramine, Trepadone and Percura pages of the old site.
+$medicalFoodVideo = <<<'HTML'
+<h3>Watch: medical foods explained</h3>
+<div class="video-embed"><iframe src="https://www.youtube-nocookie.com/embed/A6EAz_GVfg0" title="Medical foods video" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+HTML;
+
 $medicalFoodNote = 'Physician-prescribed medical foods are intended for use only under medical supervision. Our providers typically prescribe them with refills, and when taken as directed each bottle is about a one-month supply.';
 
 return [
@@ -369,7 +375,7 @@ HTML,
 <h3>Research</h3>
 <p>Shell WE, et al. "A Double-Blind Controlled Trial of a Single Dose Naproxen and an Amino Acid Medical Food Theramine for the Treatment of Low Back Pain." <em>American Journal of Therapeutics</em>, 2012.</p>
 <p>Shell WE, et al. "Reduction in Pain and Inflammation Associated with Chronic Low Back Pain with the Use of the Medical Food Theramine." <em>American Journal of Therapeutics</em>.</p>
-HTML,
+HTML . $medicalFoodVideo,
         'conditions' => "Acute pain\nChronic pain\nInflammatory pain\nNeuropathic pain\nIdiopathic pain, such as fibromyalgia\nBack, joint and muscle pain",
         'how_it_works' => <<<'HTML'
 <p>Theramine is a capsule taken by mouth. It contains a proprietary blend of amino acids and polyphenol ingredients for the dietary management of the altered metabolic processes associated with pain syndromes and inflammatory conditions. It is designed to support the production of serotonin, GABA, serine and acetylcholine, neurotransmitters involved in reducing pain and inflammation.</p>
@@ -402,7 +408,7 @@ HTML,
 <li><strong>L-histidine</strong>, an amino acid with anti-inflammatory and immune-modulating properties</li>
 <li><strong>Whey protein</strong>, whose peptides have been studied for effects on pain and inflammation</li>
 </ul>
-HTML,
+HTML . $medicalFoodVideo,
         'conditions' => "Osteoarthritis\nChronic joint pain\nJoint inflammation\nJoint stiffness and reduced mobility",
         'how_it_works' => <<<'HTML'
 <p>Trepadone provides a balance of nutrients involved in managing pain and inflammation. Its blend of antioxidants and anti-inflammatory ingredients helps limit the effects of joint inflammation. Glucosamine and chondroitin help maintain the structure and function of the joints.</p>
@@ -436,7 +442,7 @@ HTML,
 <li><strong>Creatine monohydrate</strong>, which supports cellular energy production and may aid repair in peripheral sensory nerves</li>
 <li><strong>Choline bitartrate</strong>, converted to acetylcholine, which supports serotonin release and helps reduce sensitivity to pain</li>
 </ul>
-HTML,
+HTML . $medicalFoodVideo,
         'conditions' => "Peripheral neuropathy\nNerve pain\nNumbness\nLoss of sensation\nTingling in the hands or feet",
         'how_it_works' => <<<'HTML'
 <p>Percura works with your body over time to meet the increased nutritional needs of neuropathic pain, helping restore balance to the nervous system. Its ingredients are Generally Recognized as Safe (GRAS). It may suit patients who have had significant side effects from certain drug therapies.</p>

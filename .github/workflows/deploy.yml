@@ -90,3 +90,6 @@ jobs:
       # One-time content updates in app/migrations/ (each runs once; see app/cli/migrate.php)
       - name: Run content migrations
         run: ssh sg "cd '$SSH_DIR' && php app/cli/migrate.php"
+
+      - name: Content report (videos and patient forms)
+        run: ssh sg "cd '$SSH_DIR' && php app/cli/report.php"

@@ -61,6 +61,12 @@ final class Settings
             'form_accident_es' => '',
             'form_pain_questionnaire' => '',
 
+            // Videos (empty = match the old site's file name in the Media Library)
+            'video_patient_1' => '',
+            'video_patient_2' => '',
+            'video_patient_3' => '',
+            'video_silano' => '',
+
             // Social
             'social_facebook' => '',
             'social_x' => '',

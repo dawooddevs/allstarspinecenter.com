@@ -2,6 +2,8 @@
 // Stroke icon paths (24x24). Entries prefixed with FILL: are rendered filled.
 return [
     'circle' => '<circle cx="12" cy="12" r="9"/>',
+    'play' => '<polygon points="6 3 20 12 6 21 6 3"/>',
+    'video' => '<path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/>',
     'arrow-right' => '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
     'arrow-left' => '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
     'arrow-up-right' => '<path d="M7 7h10v10"/><path d="M7 17 17 7"/>',

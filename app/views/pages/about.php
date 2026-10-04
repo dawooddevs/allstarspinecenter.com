@@ -62,4 +62,5 @@ partial('inner-hero', [
   </div>
 </section>
 <?php endif; ?>
+<?php partial('patient-stories'); ?>
 <?php partial('cta'); ?>

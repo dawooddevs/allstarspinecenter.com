@@ -41,6 +41,26 @@ final class Media
         return self::$map[ltrim($path, '/')] ?? null;
     }
 
+    /**
+     * Normalised file-name key for matching uploads to files from the old site: case, spaces and
+     * punctuation are ignored, as are copy suffixes like "-1" or " (2)" ("WOMAC (1).pdf" = "WOMAC.pdf").
+     */
+    public static function matchKey(string $name): string
+    {
+        return (string)preg_replace('/-\d{1,2}$/', '', substr(slugify(pathinfo($name, PATHINFO_FILENAME)), 0, 60));
+    }
+
+    /** Media rows of one kind keyed by matchKey() of both the original and stored names; newest upload wins. */
+    public static function byMatchKey(string $kind): array
+    {
+        $out = [];
+        foreach (DB::all('SELECT * FROM media WHERE kind = ? ORDER BY id', [$kind]) as $m) {
+            $out[self::matchKey((string)$m['original_name'])] = $m;
+            $out[self::matchKey(basename((string)$m['path']))] = $m;
+        }
+        return $out;
+    }
+
     public static function upload(array $file, int $userId, string $folder = ''): array
     {
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {

@@ -6,6 +6,7 @@ Seo::set([
     'canonical' => abs_url('testimonials/'),
 ]);
 $items = Content::testimonials();
+$feature = Content::videoList(['silano'])[0] ?? null;
 partial('inner-hero', [
     'title' => $page['title'],
     'eyebrow' => $page['eyebrow'],
@@ -13,6 +14,22 @@ partial('inner-hero', [
     'crumbs' => [['Testimonials', 'testimonials/']],
 ]);
 ?>
+<?php if ($feature): ?>
+<section class="section section--tight">
+  <div class="container vfeature">
+    <div class="vfeature__media" data-reveal><?php partial('video', ['v' => $feature, 'class' => 'vcard--wide']); ?></div>
+    <div class="vfeature__text" data-reveal style="--d:1">
+      <p class="eyebrow">Some testimonials about us</p>
+      <h2 class="h2">Hear It in <em>Their Own Words</em></h2>
+      <p>Watch the video, then scroll down to read more stories from patients in Gilbert and Tempe who found relief with our integrated, non-surgical care.</p>
+      <div class="btn-row">
+        <a class="btn btn--accent" href="<?= e(url('make-appointment/')) ?>">Request Appointment <?= icon('arrow-right') ?></a>
+        <a class="btn btn--ghost" href="<?= e(url('doctor/dr-andre-silano/')) ?>">Meet Dr. Silano</a>
+      </div>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
 <section class="section">
   <div class="container">
     <?php if ($items): ?>

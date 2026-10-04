@@ -225,19 +225,12 @@ final class Content
         if (self::$formGroups !== null) {
             return self::$formGroups;
         }
-        // Match on the file name, ignoring case, punctuation and copy suffixes such as "WOMAC (1).pdf".
-        // Newer uploads win when the same form was uploaded twice.
-        $key = fn(string $name): string => preg_replace('/-\d+$/', '', substr(slugify(pathinfo($name, PATHINFO_FILENAME)), 0, 60));
-        $library = [];
-        foreach (DB::all("SELECT path, original_name FROM media WHERE kind = 'document' ORDER BY id") as $m) {
-            $library[$key((string)$m['original_name'])] = $m['path'];
-            $library[$key(basename((string)$m['path']))] = $m['path'];
-        }
+        $library = Media::byMatchKey('document');
         $groups = [];
         foreach (self::FORM_GROUPS as $gk => $g) {
             foreach ($g['items'] as &$f) {
                 $set = isset($f['setting']) ? trim((string)setting($f['setting'], '')) : '';
-                $path = $library[$key($f['file'])] ?? null;
+                $path = $library[Media::matchKey($f['file'])]['path'] ?? null;
                 if ($set !== '') {
                     [$f['url'], $f['source']] = [media_url($set), 'setting'];
                 } elseif ($path) {
@@ -262,6 +255,48 @@ final class Content
         }
         $out[] = ['label' => 'Pain Treatment Questionnaires', 'url' => url('make-appointment/#pain-questionnaires'), 'available' => true, 'download' => false, 'source' => 'page'];
         return $out;
+    }
+
+    /**
+     * Videos from the previous website. Each is found in the Media Library by its original file
+     * name (see Media::matchKey) unless a different file is chosen in Settings → Videos.
+     */
+    public const VIDEOS = [
+        'patient-1' => ['file' => 'VID_20230522_135428707.mp4', 'setting' => 'video_patient_1', 'label' => 'Patient story 1'],
+        'patient-2' => ['file' => 'VID_20230523_104915424.mp4', 'setting' => 'video_patient_2', 'label' => 'Patient story 2'],
+        'patient-3' => ['file' => 'VID_20230503_111008824.mp4', 'setting' => 'video_patient_3', 'label' => 'Patient story 3'],
+        'silano' => ['file' => '1_Silano-Testimonial.mp4', 'setting' => 'video_silano', 'label' => 'Testimonial video'],
+    ];
+
+    private static ?array $videos = null;
+
+    /** All VIDEOS resolved: url, mime and source ('setting', 'library' or 'missing'). */
+    public static function videos(): array
+    {
+        if (self::$videos !== null) {
+            return self::$videos;
+        }
+        $library = Media::byMatchKey('video');
+        $out = [];
+        foreach (self::VIDEOS as $key => $v) {
+            $set = trim((string)setting($v['setting'], ''));
+            $row = $library[Media::matchKey($v['file'])] ?? null;
+            $path = $set !== '' ? $set : ($row['path'] ?? '');
+            $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+            $out[$key] = $v + [
+                'url' => $path !== '' ? media_url($path) : '',
+                'mime' => ['mp4' => 'video/mp4', 'webm' => 'video/webm', 'mov' => 'video/mp4'][$ext] ?? 'video/mp4',
+                'source' => $set !== '' ? 'setting' : ($row ? 'library' : 'missing'),
+            ];
+        }
+        return self::$videos = $out;
+    }
+
+    /** The requested videos that are available, in order. */
+    public static function videoList(array $keys): array
+    {
+        $all = self::videos();
+        return array_values(array_filter(array_map(fn($k) => $all[$k] ?? null, $keys), fn($v) => $v && $v['url'] !== ''));
     }
 
     public static function hours(array $loc): array

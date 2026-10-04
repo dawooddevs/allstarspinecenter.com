@@ -314,6 +314,15 @@
   }
 
   /* ---------- Testimonials slider ---------- */
+  // Videos: size each frame to the clip's real shape and play one at a time
+  $$('[data-video-frame] video').forEach(function (v) {
+    var fit = function () { if (v.videoWidth && v.videoHeight) v.parentNode.style.setProperty('--ar', v.videoWidth + ' / ' + v.videoHeight); };
+    if (v.readyState >= 1) fit(); else v.addEventListener('loadedmetadata', fit);
+    v.addEventListener('play', function () {
+      $$('[data-video-frame] video').forEach(function (o) { if (o !== v && !o.paused) o.pause(); });
+    });
+  });
+
   $$('[data-slider]').forEach(function (sl) {
     var track = $('[data-slider-track]', sl);
     function by(dir) {

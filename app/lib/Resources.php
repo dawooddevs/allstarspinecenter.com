@@ -292,6 +292,12 @@ final class Resources
                 ['key' => 'form_accident_en', 'label' => 'Accident Forms — English', 'type' => 'file'],
                 ['key' => 'form_accident_es', 'label' => 'Accident Forms — Spanish', 'type' => 'file'],
             ]],
+            'videos' => ['label' => 'Videos', 'icon' => 'video', 'fields' => [
+                ['key' => 'video_patient_1', 'label' => 'Patient story video 1 (About Us & Pain Treatments)', 'type' => 'file', 'help' => 'Optional. Leave empty to use the video in the Media Library with the same file name as on the old site (VID_20230522_135428707.mp4).'],
+                ['key' => 'video_patient_2', 'label' => 'Patient story video 2 (About Us & Pain Treatments)', 'type' => 'file', 'help' => 'Default file name: VID_20230523_104915424.mp4'],
+                ['key' => 'video_patient_3', 'label' => 'Patient story video 3 (About Us & Pain Treatments)', 'type' => 'file', 'help' => 'Default file name: VID_20230503_111008824.mp4'],
+                ['key' => 'video_silano', 'label' => 'Testimonials page video', 'type' => 'file', 'help' => 'Default file name: 1_Silano-Testimonial.mp4'],
+            ]],
             'social' => ['label' => 'Social', 'icon' => 'globe', 'fields' => [
                 ['key' => 'social_facebook', 'label' => 'Facebook URL', 'type' => 'text'],
                 ['key' => 'social_x', 'label' => 'X / Twitter URL', 'type' => 'text'],
