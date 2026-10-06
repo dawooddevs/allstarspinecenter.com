@@ -6,9 +6,9 @@ final class Content
 {
     public const CATEGORIES = [
         'medical' => ['label' => 'Medical Treatments', 'short' => 'Medical', 'icon' => 'stethoscope', 'blurb' => 'Injections, regenerative medicine, decompression and advanced in-office procedures.'],
+        'chiropractic' => ['label' => 'Chiropractic Care', 'short' => 'Chiropractic', 'icon' => 'spine', 'blurb' => 'Spinal and joint adjustments to support alignment, motion and function.'],
         'soft-tissue' => ['label' => 'Soft Tissue Management', 'short' => 'Soft Tissue', 'icon' => 'waves', 'blurb' => 'Hands-on and instrument-assisted therapies for muscles and fascia.'],
         'injury' => ['label' => 'Injury & Accident Care', 'short' => 'Injury Care', 'icon' => 'car', 'blurb' => 'Evaluation and care after auto, work and sports injuries.'],
-        'chiropractic' => ['label' => 'Chiropractic Care', 'short' => 'Chiropractic', 'icon' => 'spine', 'blurb' => 'Spinal and joint adjustments to support alignment, motion and function.'],
         'allergy' => ['label' => 'Allergy Treatments', 'short' => 'Allergy', 'icon' => 'flower', 'blurb' => 'Testing and immunotherapy for environmental and food allergies.'],
         'medical-foods' => ['label' => 'Medical Foods', 'short' => 'Medical Foods', 'icon' => 'pill', 'blurb' => 'Physician-supervised medical foods used as part of a care plan.'],
     ];

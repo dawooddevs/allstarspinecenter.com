@@ -15,24 +15,6 @@ $contact = [
     ['Contact Us', 'contact-us/', 'Call, text or send a message', 'message-square'],
     ['Locations', 'locations/', 'Gilbert & Tempe offices, hours and maps', 'map-pin'],
 ];
-$svcLink = function ($s) use ($cur) {
-    $label = $s['menu_label'] ?: $s['title'];
-    $badge = (int)$s['coming_soon'] ? '' : '';
-    if ((int)$s['coming_soon']) {
-        $label = preg_replace('/\s*—\s*Coming Soon$/i', '', $label);
-        $badge = ' <span class="tag tag--soon">Coming soon</span>';
-    }
-    return '<li><a href="' . e(Content::serviceUrl($s)) . '"' . $cur('/service/' . $s['slug'] . '/') . '>' . e($label) . $badge . '</a></li>';
-};
-$group = function ($cat, $extraClass = '') use ($menuServices, $svcLink) {
-    $c = Content::CATEGORIES[$cat];
-    $items = $menuServices($cat);
-    if (!$items) return '';
-    $h = '<div class="mega__group ' . $extraClass . '"><a class="mega__title" href="' . e(url('pain-treatments/?category=' . $cat)) . '"><span class="mega__icon">' . icon($c['icon']) . '</span>' . e($c['label']) . '</a><ul>';
-    foreach ($items as $s) $h .= $svcLink($s);
-    return $h . '</ul></div>';
-};
-$chiro = $menuServices('chiropractic');
 ?>
 <div class="utility">
   <div class="container utility__inner">
@@ -67,39 +49,15 @@ $chiro = $menuServices('chiropractic');
           </div>
         </li>
 
-        <li class="nav__item has-mega">
-          <button class="nav__link" type="button" aria-expanded="false" aria-controls="mega-treatments">Pain Treatments<?= icon('chevron-down', 'icon nav__chev') ?></button>
-          <div class="mega" id="mega-treatments">
-            <div class="container mega__inner">
-              <div class="mega__cols">
-                <?= $group('medical', 'mega__group--tall') ?>
-                <div class="mega__stack">
-                  <?php if ($chiro): $c = $chiro[0]; ?>
-                  <a class="mega__feature" href="<?= e(Content::serviceUrl($c)) ?>">
-                    <span class="mega__feature-icon"><?= icon('spine') ?></span>
-                    <span class="mega__feature-eyebrow">Chiropractic Care</span>
-                    <strong><?= e($c['title']) ?></strong>
-                    <span class="mega__feature-text">Adjustments and spinal care from experienced chiropractors.</span>
-                    <span class="mega__feature-cta">Explore chiropractic <?= icon('arrow-right') ?></span>
-                  </a>
-                  <?php endif; ?>
-                  <?= $group('soft-tissue') ?>
-                </div>
-                <div class="mega__stack">
-                  <?= $group('injury') ?>
-                  <?= $group('medical-foods') ?>
-                </div>
-                <?= $group('allergy') ?>
-              </div>
-              <aside class="mega__help">
-                <span class="mega__help-icon"><?= icon('lifebuoy') ?></span>
-                <h2 class="mega__help-title">Not Sure Which Treatment You Need?</h2>
-                <p>We can help determine the right place to start.</p>
-                <a class="btn btn--accent btn--block" href="<?= e(url('make-appointment/')) ?>">Request Appointment</a>
-                <a class="btn btn--light btn--block" href="<?= e(tel_href($phone)) ?>"><?= icon('phone') ?>Call <?= e($phone) ?></a>
-                <a class="mega__all" href="<?= e(url('pain-treatments/')) ?>">View All Treatments <?= icon('arrow-right') ?></a>
-              </aside>
-            </div>
+        <li class="nav__item has-drop">
+          <button class="nav__link" type="button" aria-expanded="false" aria-controls="dd-treatments">Pain Treatments<?= icon('chevron-down', 'icon nav__chev') ?></button>
+          <div class="dropdown" id="dd-treatments">
+            <ul class="dropdown__list">
+              <?php foreach (Content::CATEGORIES as $key => $c): $n = count($menuServices($key)); if (!$n) continue; ?>
+              <li><a class="dropdown__link" href="<?= e(url('pain-treatments/?category=' . $key)) ?>"><span class="dropdown__icon"><?= icon($c['icon']) ?></span><span><strong><?= e($c['label']) ?></strong><small><?= e(plural($n, 'treatment', 'treatments')) ?></small></span></a></li>
+              <?php endforeach; ?>
+            </ul>
+            <a class="dropdown__all" href="<?= e(url('pain-treatments/')) ?>">View all treatments <?= icon('arrow-right') ?></a>
           </div>
         </li>
 

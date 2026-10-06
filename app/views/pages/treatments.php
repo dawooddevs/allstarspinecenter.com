@@ -65,4 +65,4 @@ partial('inner-hero', [
   </div>
 </section>
 <?php partial('patient-stories'); ?>
-<?php partial('cta', ['headline' => 'Not Sure Which Treatment You Need?', 'copy' => 'We can help determine the right place to start. Request an evaluation and our team will guide you.']); ?>
+<?php partial('cta'); ?>

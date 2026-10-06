@@ -91,18 +91,21 @@ $svc = fn($slug) => url('service/' . $slug . '/');
 <!-- 5. About / integrated care -->
 <section class="section about-home" aria-labelledby="about-title">
   <div class="container split">
-    <div class="split__media" data-reveal="mask">
-      <?php if (setting('about_image')): ?>
-        <div class="about-home__photo"><?= img(setting('about_image'), 'The All Star Health care team') ?></div>
-      <?php else: ?>
-      <div class="disciplines">
-        <?php foreach ([
-            ['Medical Providers', 'Physicians & physician assistants', 'stethoscope'],
-            ['Chiropractors', 'Spinal & joint care', 'spine'],
-            ['Rehabilitation', 'Soft tissue & movement', 'move'],
-            ['Allergy & Family Care', 'Testing & immunotherapy', 'flower'],
-        ] as $i => [$t, $s, $ic]): ?>
-        <div class="discipline discipline--<?= $i ?>"><span class="discipline__icon"><?= icon($ic) ?></span><strong><?= e($t) ?></strong><small><?= e($s) ?></small></div>
+    <div class="split__media about-home__media">
+      <div class="about-home__photo" data-reveal="mask">
+        <?php if (setting('about_image')): ?>
+        <?= img(setting('about_image'), 'The All Star Health care team') ?>
+        <?php else: ?>
+        <?php partial('art', ['icon' => 'heart-pulse', 'variant' => 'medical', 'label' => 'Integrated care', 'large' => true]); ?>
+        <?php endif; ?>
+      </div>
+      <?php if ($stats): ?>
+      <div class="about-stats" aria-label="Experience">
+        <?php foreach ($stats as $i => $st): ?>
+        <div class="about-stat about-stat--<?= $i % 3 ?>" data-reveal style="--d:<?= $i ?>">
+          <p class="about-stat__num"><span data-count="<?= (int)$st['value'] ?>"><?= (int)$st['value'] ?></span><?= e($st['suffix'] ?? '') ?></p>
+          <p class="about-stat__label"><?= e($st['label']) ?></p>
+        </div>
         <?php endforeach; ?>
       </div>
       <?php endif; ?>
@@ -117,20 +120,6 @@ $svc = fn($slug) => url('service/' . $slug . '/');
         <li>+ surrounding Arizona communities</li>
       </ul>
       <a class="btn btn--dark" href="<?= e(url('about-us/')) ?>">About All Star Health <?= icon('arrow-right') ?></a>
-    </div>
-  </div>
-</section>
-
-<!-- 6. Experience statistics -->
-<section class="stats" aria-label="Experience">
-  <div class="container">
-    <div class="stats__grid">
-      <?php foreach ($stats as $i => $s): ?>
-      <div class="stat" data-reveal style="--d:<?= $i ?>">
-        <p class="stat__num"><span data-count="<?= (int)$s['value'] ?>"><?= (int)$s['value'] ?></span><?= e($s['suffix'] ?? '') ?></p>
-        <p class="stat__label"><?= e($s['label']) ?></p>
-      </div>
-      <?php endforeach; ?>
     </div>
   </div>
 </section>
