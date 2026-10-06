@@ -354,8 +354,8 @@ final class Media
             });
         }
         if ($includeSettings) {
-            foreach ([['hero_image', 'Homepage hero', 'home-hero'], ['about_image', 'Homepage integrated care', 'home-integrated-care'], ['testimonials_image', 'Homepage testimonials', 'home-testimonials'], ['seo_og_image', 'Social share image', 'social-share'], ['logo', 'Logo', 'logo'], ['logo_light', 'Logo (dark footer)', 'logo-light'], ['favicon', 'Favicon', 'favicon']] as [$key, $label, $file]) {
-                $add('Site', $label, (string)setting($key, ''), $find([$file]), function ($m) use ($key) { Settings::set($key, $m['path']); });
+            foreach ([['hero_image', 'Homepage hero', 'home-hero'], ['about_image', 'Homepage integrated care', ['home-integrated-care', 'not-just-better-healthcare']], ['testimonials_image', 'Homepage testimonials', ['home-testimonials', 'patient-satisfaction-is-our-working-motivation']], ['seo_og_image', 'Social share image', 'social-share'], ['logo', 'Logo', 'logo'], ['logo_light', 'Logo (dark footer)', 'logo-light'], ['favicon', 'Favicon', 'favicon']] as [$key, $label, $file]) {
+                $add('Site', $label, (string)setting($key, ''), $find((array)$file), function ($m) use ($key) { Settings::set($key, $m['path']); });
             }
         }
         return ['matches' => $matches, 'files' => count($files)];

@@ -21,6 +21,7 @@ foreach (['services' => 'image', 'pages' => 'image', 'providers' => 'photo', 'lo
     foreach (DB::all("SELECT $c AS p FROM $t WHERE $c <> ''") as $r) $broken += Media::isMissing((string)$r['p']) ? 1 : 0;
 }
 echo "Images pointing at missing files: {$broken}\n";
+echo "Homepage images: integrated care = " . (setting('about_image') ?: '(none)') . ", testimonials = " . (setting('testimonials_image') ?: '(none)') . "\n";
 echo "PENS / Dry Needling image: " . (DB::val("SELECT image FROM services WHERE slug = 'pens-dry-needling-treatment'") ?: '(none)') . "\n";
 echo "Videos used on the site:\n";
 foreach (Content::videos() as $key => $v) {
