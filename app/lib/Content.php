@@ -27,6 +27,15 @@ final class Content
 
     private static array $cache = [];
 
+    /** Treatments for the homepage explorer: the featured list, or every published treatment in a category. */
+    public static function explorerServices(string $cat): array
+    {
+        if ($cat === 'featured') {
+            return self::servicesBySlugs(csv_list(setting('featured_services')));
+        }
+        return array_values(array_filter(self::services(), fn($s) => $s['category'] === $cat));
+    }
+
     public static function services(bool $publishedOnly = true): array
     {
         $key = 'services' . (int)$publishedOnly;

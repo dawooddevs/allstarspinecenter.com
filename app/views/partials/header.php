@@ -53,8 +53,19 @@ $contact = [
           <button class="nav__link" type="button" aria-expanded="false" aria-controls="dd-treatments">Pain Treatments<?= icon('chevron-down', 'icon nav__chev') ?></button>
           <div class="dropdown" id="dd-treatments">
             <ul class="dropdown__list">
-              <?php foreach (Content::CATEGORIES as $key => $c): $n = count($menuServices($key)); if (!$n) continue; ?>
-              <li><a class="dropdown__link" href="<?= e(url('pain-treatments/?category=' . $key)) ?>"><span class="dropdown__icon"><?= icon($c['icon']) ?></span><span><strong><?= e($c['label']) ?></strong><small><?= e(plural($n, 'treatment', 'treatments')) ?></small></span></a></li>
+              <?php foreach (Content::CATEGORIES as $key => $c): $items = $menuServices($key); if (!$items) continue; ?>
+              <li class="dropdown__item has-sub">
+                <a class="dropdown__link" href="<?= e(url('pain-treatments/?category=' . $key)) ?>" aria-haspopup="true"><span class="dropdown__icon"><?= icon($c['icon']) ?></span><span><strong><?= e($c['label']) ?></strong><small><?= e(plural(count($items), 'treatment', 'treatments')) ?></small></span><?= icon('chevron-right', 'icon dropdown__chev') ?></a>
+                <div class="dropdown__sub">
+                  <p class="dropdown__sub-title"><?= e($c['label']) ?></p>
+                  <ul>
+                    <?php foreach ($items as $sv):
+                        $label = preg_replace('/\s*—\s*Coming Soon$/i', '', $sv['menu_label'] ?: $sv['title']); ?>
+                    <li><a href="<?= e(Content::serviceUrl($sv)) ?>"<?= $cur('/service/' . $sv['slug'] . '/') ?>><?= e($label) ?><?php if ((int)$sv['coming_soon']): ?> <span class="tag tag--soon">Coming soon</span><?php endif; ?></a></li>
+                    <?php endforeach; ?>
+                  </ul>
+                </div>
+              </li>
               <?php endforeach; ?>
             </ul>
             <a class="dropdown__all" href="<?= e(url('pain-treatments/')) ?>">View all treatments <?= icon('arrow-right') ?></a>

@@ -269,6 +269,7 @@ final class Resources
                 ['key' => 'hero_badges', 'label' => 'Trust indicators', 'type' => 'lines', 'help' => 'One per line.'],
                 ['key' => 'hero_image', 'label' => 'Hero photo', 'type' => 'image', 'help' => 'A strong, real medical/patient photo. Leave empty for the animated spine illustration.'],
                 ['key' => 'about_image', 'label' => 'Integrated care section photo', 'type' => 'image'],
+                ['key' => 'testimonials_image', 'label' => 'Testimonials section photo', 'type' => 'image', 'help' => 'Shown beside patient testimonials on the homepage. Media → Auto-assign uses a file named home-testimonials.'],
                 ['key' => 'stats', 'label' => 'Experience statistics', 'type' => 'repeater', 'add' => 'Add statistic', 'help' => 'Never invent statistics — add a 4th only if verified.',
                     'fields' => [['key' => 'value', 'label' => 'Number', 'type' => 'text'], ['key' => 'suffix', 'label' => 'Suffix', 'type' => 'text'], ['key' => 'label', 'label' => 'Label', 'type' => 'text']]],
                 ['key' => 'featured_services', 'label' => 'Featured treatments (explorer)', 'type' => 'relation', 'source' => 'services'],

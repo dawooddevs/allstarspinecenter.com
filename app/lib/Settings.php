@@ -37,6 +37,7 @@ final class Settings
             'hero_image' => '',
             'hero_badges' => "Same-Day Appointments\nMost Major Insurance Accepted\nGilbert & Tempe Locations\nNon-Surgical Treatment Options",
             'about_image' => '',
+            'testimonials_image' => '',
             'stats' => json_encode([
                 ['value' => 28, 'suffix' => '+', 'label' => 'Years Serving the Community'],
                 ['value' => 150, 'suffix' => '+', 'label' => 'Years Combined Clinical Experience'],

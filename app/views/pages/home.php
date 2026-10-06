@@ -8,8 +8,6 @@ $phone = setting('phone');
 $heroImage = setting('hero_image');
 $badges = lines(setting('hero_badges'));
 $stats = json_list(setting('stats'));
-$featured = Content::servicesBySlugs(csv_list(setting('featured_services')));
-$all = Content::services();
 $providers = Content::providers();
 $locations = Content::locations();
 $testimonials = Content::testimonials(true);
@@ -134,24 +132,18 @@ $svc = fn($slug) => url('service/' . $slug . '/');
       </div>
       <a class="btn btn--outline" href="<?= e(url('pain-treatments/')) ?>">Explore All Treatments <?= icon('arrow-right') ?></a>
     </div>
-    <div class="tabs" role="tablist" aria-label="Treatment categories" data-explorer-tabs>
+    <div class="tabs" role="tablist" aria-label="Treatment categories" data-explorer-tabs data-api="<?= e(url('api/treatments')) ?>" data-all="<?= e(url('pain-treatments/')) ?>">
       <button class="tab is-active" role="tab" aria-selected="true" data-filter="featured">Featured</button>
       <?php foreach (Content::CATEGORIES as $k => $c): ?>
       <button class="tab" role="tab" aria-selected="false" data-filter="<?= e($k) ?>"><?= e($c['short'] === 'Medical' ? 'Medical Treatments' : $c['short']) ?></button>
       <?php endforeach; ?>
     </div>
-    <div class="tgrid" data-explorer-grid>
-      <?php
-      $featuredSlugs = array_column($featured, 'slug');
-      foreach ($featured as $s) {
-          partial('service-card', ['s' => $s, 'class' => 'is-featured']);
-      }
-      foreach ($all as $s) {
-          if (!in_array($s['slug'], $featuredSlugs, true)) {
-              partial('service-card', ['s' => $s, 'class' => 'is-extra']);
-          }
-      }
-      ?>
+    <?php $exItems = Content::explorerServices('featured'); ?>
+    <div class="tgrid" data-explorer-grid data-total="<?= count($exItems) ?>" aria-live="polite">
+      <?php foreach (array_slice($exItems, 0, 3) as $s) partial('service-card', ['s' => $s]); ?>
+    </div>
+    <div class="explorer__more"<?= count($exItems) > 3 ? '' : ' hidden' ?> data-explorer-more-wrap>
+      <a class="btn btn--outline btn--lg" href="<?= e(url('pain-treatments/')) ?>" data-explorer-more data-next="3">Show More <?= icon('chevron-down') ?></a>
     </div>
   </div>
 </section>
@@ -318,15 +310,46 @@ $svc = fn($slug) => url('service/' . $slug . '/');
 <!-- 15. Testimonials -->
 <?php if ($testimonials): ?>
 <section class="section testimonials" aria-labelledby="t-title">
-  <div class="container">
-    <div class="section-head" data-reveal>
-      <div>
-        <p class="eyebrow">Patient stories</p>
-        <h2 id="t-title" class="h2">What Our <em>Patients Say</em></h2>
+  <div class="container tshow">
+    <div class="tshow__media" data-reveal>
+      <div class="tshow__photo">
+        <?php if (setting('testimonials_image')): ?>
+        <?= img(setting('testimonials_image'), 'A patient with an All Star Health provider') ?>
+        <?php else: ?>
+        <?php partial('art', ['icon' => 'heart-pulse', 'variant' => 'soft-tissue', 'label' => 'Patient stories', 'large' => true]); ?>
+        <?php endif; ?>
       </div>
-      <a class="btn btn--outline" href="<?= e(url('testimonials/')) ?>">Read Patient Stories <?= icon('arrow-right') ?></a>
+      <?php if ($first = $stats[0] ?? null): ?>
+      <div class="tshow__badge">
+        <p class="tshow__badge-num"><span data-count="<?= (int)$first['value'] ?>"><?= (int)$first['value'] ?></span><sup><?= e($first['suffix'] ?? '') ?></sup></p>
+        <p class="tshow__badge-label"><?= e($first['label']) ?></p>
+      </div>
+      <?php endif; ?>
+      <span class="tshow__quote-mark" aria-hidden="true"><?= icon('quote') ?></span>
     </div>
-    <div data-reveal><?php partial('testimonials', ['items' => $testimonials]); ?></div>
+    <div class="tshow__content" data-reveal style="--d:1">
+      <p class="eyebrow">Patient testimonials</p>
+      <h2 id="t-title" class="h2">Patient Satisfaction Is <em>Our Working Motivation</em></h2>
+      <div class="tshow__stars" aria-hidden="true"><?= str_repeat(icon('star'), 5) ?></div>
+      <?php if ($testimonials): ?>
+      <div class="tshow__card" data-tshow aria-roledescription="carousel" aria-label="Patient testimonials">
+        <div class="tshow__slides" aria-live="polite">
+          <?php foreach ($testimonials as $i => $t): ?>
+          <figure class="tshow__slide<?= $i === 0 ? ' is-active' : '' ?>" role="group" aria-roledescription="slide" aria-label="<?= $i + 1 ?> of <?= count($testimonials) ?>"<?= $i === 0 ? '' : ' hidden' ?>>
+            <blockquote class="tshow__text"><p>“<?= e(preg_replace('/^[\s"“”]+|[\s"“”]+$/u', '', (string)$t['content'])) ?>”</p></blockquote>
+            <figcaption class="tshow__by"><?= e(mb_strtoupper($t['name'])) ?><?php if ($t['label'] && $t['label'] !== 'Patient'): ?><small><?= e($t['label']) ?></small><?php endif; ?></figcaption>
+          </figure>
+          <?php endforeach; ?>
+        </div>
+        <div class="tshow__nav">
+          <span class="tshow__count"><span data-tshow-current>1</span> / <?= count($testimonials) ?></span>
+          <button type="button" class="tshow__btn" data-tshow-prev aria-label="Previous testimonial"><?= icon('arrow-left') ?></button>
+          <button type="button" class="tshow__btn" data-tshow-next aria-label="Next testimonial"><?= icon('arrow-right') ?></button>
+        </div>
+      </div>
+      <?php endif; ?>
+      <a class="tshow__all" href="<?= e(url('testimonials/')) ?>">Read all patient stories <?= icon('arrow-right') ?></a>
+    </div>
   </div>
 </section>
 <?php endif; ?>

@@ -68,6 +68,27 @@ if ($path === '/sitemap.xml') {
 if ($path === '/api/form') {
     Forms::handle();
 }
+if ($path === '/api/treatments') {
+    // Homepage treatment explorer: rendered cards for one tab, a page at a time ("Show More")
+    $cat = (string)($_GET['category'] ?? 'featured');
+    header('Content-Type: application/json; charset=utf-8');
+    if ($cat !== 'featured' && !isset(Content::CATEGORIES[$cat])) {
+        http_response_code(404);
+        echo json_encode(['error' => 'Unknown category']);
+        exit;
+    }
+    $items = Content::explorerServices($cat);
+    $offset = max(0, (int)($_GET['offset'] ?? 0));
+    $limit = (int)($_GET['limit'] ?? 3);
+    $slice = array_slice($items, $offset, $limit > 0 ? $limit : null);
+    $html = '';
+    foreach ($slice as $s) {
+        $html .= render('partials/service-card', ['s' => $s]);
+    }
+    header('Cache-Control: public, max-age=300');
+    echo json_encode(['html' => $html, 'total' => count($items), 'next' => $offset + count($slice)]);
+    exit;
+}
 
 // 3. Enforce trailing slash on page URLs (matches the existing site's URL format)
 if ($path !== '/' && !str_ends_with($path, '/') && !preg_match('~\.[a-z0-9]{2,5}$~i', $path)) {
