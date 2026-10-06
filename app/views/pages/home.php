@@ -355,9 +355,16 @@ $svc = fn($slug) => url('service/' . $slug . '/');
         </div>
         <div class="book__panel">
           <p class="book__panel-title"><?= icon('map-pin') ?>Our offices</p>
-          <?php foreach ($locations as $l): ?>
-          <a class="book__row" href="<?= e(Content::mapsDirections($l)) ?>" target="_blank" rel="noopener"><span class="book__row-icon"><?= icon('building') ?></span><span class="book__row-text"><small><?= e($l['name']) ?> office</small><strong><?= e($l['address']) ?></strong><span><?= e($l['city'] . ', ' . $l['state'] . ' ' . $l['zip']) ?></span></span><?= icon('arrow-up-right', 'icon book__row-arrow') ?></a>
-          <?php endforeach; ?>
+          <div class="book__offices">
+            <?php foreach ($locations as $l): ?>
+            <a class="book__office" href="<?= e(Content::mapsDirections($l)) ?>" target="_blank" rel="noopener">
+              <span class="book__office-head"><span class="book__row-icon"><?= icon('building') ?></span><span class="book__office-name"><?= e($l['name']) ?></span></span>
+              <span class="book__office-addr"><?= e($l['address']) ?></span>
+              <span class="book__office-city"><?= e($l['city'] . ', ' . $l['state'] . ' ' . $l['zip']) ?></span>
+              <span class="book__office-link">Get directions <?= icon('arrow-up-right') ?></span>
+            </a>
+            <?php endforeach; ?>
+          </div>
         </div>
       </div>
       <div class="book__panel book__panel--hours">
