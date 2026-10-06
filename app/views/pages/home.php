@@ -62,30 +62,6 @@ $svc = fn($slug) => url('service/' . $slug . '/');
   </div>
 </section>
 
-<!-- 4. Quick patient actions -->
-<section class="section section--tight quick" aria-labelledby="quick-title">
-  <div class="container">
-    <div class="quick__head" data-reveal>
-      <h2 id="quick-title" class="h3">Need Help Getting Started?</h2>
-      <p>No medical terms needed — just tell us where you are.</p>
-    </div>
-    <div class="quick__grid">
-      <?php foreach ([
-          ["I'm In Pain", 'Explore Treatments', 'pain-treatments/', 'heart-pulse'],
-          ['I Was Injured', 'Accident & Injury Care', 'pain-treatments/?category=injury', 'car'],
-          ['Check My Insurance', 'Complimentary Benefits Check', 'billing-and-insurance/#benefits-check', 'shield-check'],
-          ["I'm Ready", 'Request Appointment', 'make-appointment/', 'calendar-check'],
-      ] as $i => [$t, $sub, $href, $ic]): ?>
-      <a class="quick__card<?= $i === 3 ? ' quick__card--primary' : '' ?>" href="<?= e(url($href)) ?>" data-reveal style="--d:<?= $i ?>">
-        <span class="quick__icon"><?= icon($ic) ?></span>
-        <span class="quick__text"><strong><?= e($t) ?></strong><small><?= e($sub) ?></small></span>
-        <span class="quick__arrow"><?= icon('arrow-right') ?></span>
-      </a>
-      <?php endforeach; ?>
-    </div>
-  </div>
-</section>
-
 <!-- 5. About / integrated care -->
 <section class="section about-home" aria-labelledby="about-title">
   <div class="container split">
@@ -280,11 +256,16 @@ $svc = fn($slug) => url('service/' . $slug . '/');
       </div>
       <a class="btn btn--outline" href="<?= e(url('our-doctor/')) ?>">Meet Our Providers <?= icon('arrow-right') ?></a>
     </div>
-    <div class="pgrid">
+    <div class="pgrid" data-more-group>
       <?php foreach ($providers as $i => $p): ?>
-      <div data-reveal style="--d:<?= $i % 3 ?>"><?php partial('provider-card', ['p' => $p]); ?></div>
+      <div<?= $i < 3 ? ' data-reveal style="--d:' . $i . '"' : ' class="is-more" hidden' ?>><?php partial('provider-card', ['p' => $p]); ?></div>
       <?php endforeach; ?>
     </div>
+    <?php if (count($providers) > 3): ?>
+    <div class="explorer__more" data-more-wrap>
+      <a class="btn btn--outline btn--lg" href="<?= e(url('our-doctor/')) ?>" data-more-btn>Show More <?= icon('chevron-down') ?></a>
+    </div>
+    <?php endif; ?>
   </div>
 </section>
 <?php endif; ?>
@@ -353,6 +334,68 @@ $svc = fn($slug) => url('service/' . $slug . '/');
   </div>
 </section>
 <?php endif; ?>
+
+<!-- 15b. Book a visit (contact details + appointment form) -->
+<section class="section book" id="book" aria-labelledby="book-title">
+  <div class="book__glow" aria-hidden="true"></div>
+  <div class="container book__grid">
+    <div class="book__info" data-reveal>
+      <p class="eyebrow eyebrow--light">Book your visit</p>
+      <h2 id="book-title" class="h2 book__title">Choose a Preferred Time. <em>We'll Confirm It With You.</em></h2>
+      <p class="book__lead">Requests are held for 48 hours until confirmed by our office.</p>
+      <div class="book__cards">
+        <div class="book__card">
+          <span class="book__icon"><?= icon('message-square') ?></span>
+          <h3>Contact Us</h3>
+          <ul class="book__list">
+            <?php if ($email = setting('email')): ?><li><a href="mailto:<?= e($email) ?>"><?= e($email) ?></a></li><?php endif; ?>
+            <li>Call: <a href="<?= e(tel_href($phone)) ?>"><?= e($phone) ?></a></li>
+            <li><a href="<?= e(sms_href(setting('sms_phone') ?: $phone)) ?>">Text us 24/7</a></li>
+          </ul>
+        </div>
+        <div class="book__card">
+          <span class="book__icon"><?= icon('map-pin') ?></span>
+          <h3>Address</h3>
+          <ul class="book__list">
+            <?php foreach ($locations as $l): ?>
+            <li><strong><?= e($l['name']) ?>:</strong> <a href="<?= e(Content::mapsDirections($l)) ?>" target="_blank" rel="noopener"><?= e($l['address']) ?>, <?= e($l['city']) ?>, <?= e($l['state']) ?></a></li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+        <div class="book__card book__card--wide">
+          <span class="book__icon"><?= icon('clock') ?></span>
+          <h3>Office Hours</h3>
+          <div class="book__hours">
+            <?php foreach ($locations as $l): ?>
+            <dl>
+              <dt><?= e($l['name']) ?></dt>
+              <?php foreach (Content::hours($l) as $h): if (stripos((string)$h['time'], 'closed') !== false) continue; ?>
+              <dd><span><?= e($h['days']) ?></span><span><?= e($h['time']) ?></span></dd>
+              <?php endforeach; ?>
+            </dl>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </div>
+      <h3 class="book__subhead">Benefits of scheduling an appointment</h3>
+      <ul class="book__benefits">
+        <?php foreach (['We analyze the problems you are facing', 'Complimentary benefits check', 'Flexible scheduling', 'Appointments without extended waiting', 'Text support at any time', 'Choose providers you trust'] as $b): ?>
+        <li><?= icon('check') ?><?= e($b) ?></li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+    <div class="book__form" data-reveal style="--d:1">
+      <div class="book__form-head">
+        <span class="book__form-icon"><?= icon('calendar-check') ?></span>
+        <div>
+          <h3>Enter your details</h3>
+          <p>Takes about a minute. We'll call or text to confirm.</p>
+        </div>
+      </div>
+      <?php partial('form', ['type' => 'appointment']); ?>
+    </div>
+  </div>
+</section>
 
 <!-- 16. FAQ -->
 <?php if ($faqs): ?>

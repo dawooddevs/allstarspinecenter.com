@@ -34,10 +34,6 @@ return [
             ['Do you offer same-day appointments?', 'Yes. When you are in pain, you should not have to wait. We offer same-day appointments and welcome walk-ins when availability permits.'],
             ['Do you treat car accident and work injuries?', 'Yes. We treat auto accident and work-related injuries at both offices. In many cases, accident and work injury care involves no out-of-pocket cost, and our team will review your coverage with you.'],
             ['Will I be pushed into a long-term treatment plan?', 'No. We focus on relieving your pain and getting you back to life quickly. You choose between a pain relief program and advanced corrective care.'],
-            ['Are your treatments non-surgical?', 'Yes. Our practice focuses on non-surgical orthopedic care, chiropractic, regenerative medicine, injections, soft tissue therapy and rehabilitation.'],
-            ['Can I text the office?', 'Yes. Call or text us at 844-844-4755 and a member of our team will respond as soon as possible.'],
-            ['How do appointment requests work?', 'Choose a preferred time online and our office will contact you to confirm it. Requests are held for 48 hours while we confirm. If we cannot reach you, the request is released.'],
-            ['Where are your offices?', 'We have two Arizona offices: Gilbert (2730 South Val Vista Dr. #188, Gilbert, AZ 85295) and Tempe (6625 South Rural Road, #104, Tempe, AZ 85283).'],
         ],
         'billing' => [
             ['What is a complimentary benefits check?', 'Before your visit, our insurance team verifies your coverage and explains the benefits that apply to your care, at no cost to you.'],

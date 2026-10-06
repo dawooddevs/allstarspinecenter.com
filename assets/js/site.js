@@ -264,6 +264,22 @@
     exSync();
   }
 
+  /* "Show More" for server-rendered lists (homepage team) */
+  $$('[data-more-btn]').forEach(function (btn) {
+    var wrap = btn.closest('[data-more-wrap]');
+    var group = wrap && wrap.previousElementSibling && wrap.previousElementSibling.hasAttribute('data-more-group') ? wrap.previousElementSibling : null;
+    if (!group) return;
+    btn.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      var items = $$('.is-more[hidden]', group);
+      items.forEach(function (el) { el.hidden = false; });
+      animateIn(items);
+      wrap.hidden = true;
+      var a = items[0] && $('a', items[0]);
+      if (a) a.focus({ preventScroll: true });
+    });
+  });
+
   /* Treatments index: search + category filters */
   var tIndex = $('[data-tindex]');
   if (tIndex) {
