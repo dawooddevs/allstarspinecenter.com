@@ -384,6 +384,13 @@
     });
   });
 
+  // GoHighLevel embeds: drop the loading placeholder once the widget has loaded
+  $$('.form-embed iframe').forEach(function (f) {
+    var done = function () { f.closest('.form-embed').classList.add('is-loaded'); };
+    f.addEventListener('load', done);
+    setTimeout(done, 8000);
+  });
+
   // Office hours table: highlight today's row (visitor's local day; the page may be cached)
   var isoToday = ((new Date().getDay() + 6) % 7) + 1;
   $$('[data-iso-days]').forEach(function (tr) {

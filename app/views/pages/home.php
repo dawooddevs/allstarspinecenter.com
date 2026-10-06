@@ -401,9 +401,10 @@ $svc = fn($slug) => url('service/' . $slug . '/');
     <div class="book__form" data-reveal style="--d:1">
       <div class="book__form-head">
         <span class="book__form-icon"><?= icon('calendar-check') ?></span>
+        <?php $ghl = trim((string)setting('ghl_appointment_embed')) !== ''; ?>
         <div>
-          <h3>Enter your details</h3>
-          <p>Takes about a minute. We'll call or text to confirm.</p>
+          <h3><?= $ghl ? 'Book your appointment' : 'Enter your details' ?></h3>
+          <p><?= $ghl ? 'Pick a date and time, then add your details. We\'ll confirm by phone or text.' : 'Takes about a minute. We\'ll call or text to confirm.' ?></p>
         </div>
       </div>
       <?php partial('form', ['type' => 'appointment']); ?>
