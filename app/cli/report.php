@@ -16,6 +16,12 @@ echo "Team photos:\n";
 foreach (DB::all("SELECT name, photo FROM providers ORDER BY sort_order") as $p) {
     printf("  %-22s %s\n", $p['name'], $p['photo'] ?: '(no photo)');
 }
+$broken = 0;
+foreach (['services' => 'image', 'pages' => 'image', 'providers' => 'photo', 'locations' => 'image'] as $t => $c) {
+    foreach (DB::all("SELECT $c AS p FROM $t WHERE $c <> ''") as $r) $broken += Media::isMissing((string)$r['p']) ? 1 : 0;
+}
+echo "Images pointing at missing files: {$broken}\n";
+echo "PENS / Dry Needling image: " . (DB::val("SELECT image FROM services WHERE slug = 'pens-dry-needling-treatment'") ?: '(none)') . "\n";
 echo "Videos used on the site:\n";
 foreach (Content::videos() as $key => $v) {
     printf("  %-10s %-8s %s%s\n", $key, $v['source'], $v['file'], $v['url'] ? '  -> ' . $v['url'] : '');

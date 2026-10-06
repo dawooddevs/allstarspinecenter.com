@@ -76,6 +76,14 @@ function media_url(?string $path): string
     if (preg_match('~^(https?:)?//~i', $path)) {
         return $path;
     }
+    // Uploaded files are cached for a year, so version the URL by modification time: a file
+    // replaced under the same name (e.g. deleted and re-uploaded) gets a fresh URL everywhere.
+    if (str_starts_with($path, 'uploads/') && !str_contains($path, '?')) {
+        $mtime = @filemtime(ROOT . '/' . $path);
+        if ($mtime) {
+            return url($path) . '?v=' . base_convert((string)$mtime, 10, 36);
+        }
+    }
     return url($path);
 }
 

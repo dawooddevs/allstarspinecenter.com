@@ -89,7 +89,9 @@
   function $$(s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); }
   function el(html) { var t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; }
   function can(cap) { var c = (S.user && S.user.caps) || []; return c.indexOf('*') > -1 || c.indexOf(cap) > -1; }
-  function mediaUrl(p) { if (!p) return ''; return /^(https?:)?\/\//.test(p) ? p : A.base + String(p).replace(/^\/+/, ''); }
+  // Field previews: bust the year-long image cache once per dashboard load so replaced files show
+  var MEDIA_BUST = Date.now().toString(36);
+  function mediaUrl(p) { if (!p) return ''; if (/^(https?:)?\/\//.test(p)) return p; p = String(p).replace(/^\/+/, ''); return A.base + p + (/^uploads\//.test(p) && p.indexOf('?') < 0 ? '?v=' + MEDIA_BUST : ''); }
   function debounce(fn, ms) { var t; return function () { var a = arguments, s = this; clearTimeout(t); t = setTimeout(function () { fn.apply(s, a); }, ms); }; }
   function slugify(s) { return String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
   function bytes(n) { n = +n || 0; if (n < 1024) return n + ' B'; if (n < 1048576) return (n / 1024).toFixed(0) + ' KB'; if (n < 1073741824) return (n / 1048576).toFixed(1) + ' MB'; return (n / 1073741824).toFixed(2) + ' GB'; }
@@ -136,12 +138,13 @@
   }
   function get(route, params) { return api(route, params || {}, { get: true, method: 'GET' }); }
 
-  function upload(file, onProgress) {
+  function upload(file, onProgress, route, extra) {
     return new Promise(function (resolve, reject) {
       var fd = new FormData();
       fd.append('file', file);
+      Object.keys(extra || {}).forEach(function (k) { fd.append(k, extra[k]); });
       var xhr = new XMLHttpRequest();
-      xhr.open('POST', A.api + '?r=media.upload');
+      xhr.open('POST', A.api + '?r=' + (route || 'media.upload'));
       xhr.setRequestHeader('X-CSRF-Token', S.csrf);
       xhr.setRequestHeader('Accept', 'application/json');
       xhr.upload.onprogress = function (e) { if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total); };
@@ -1108,7 +1111,9 @@
         '<div class="f"><label>File URL</label><div class="prefix"><input readonly value="' + esc(m.abs_url) + '"><button class="btn btn--plain btn--sm" data-copy style="border-radius:0">' + ic('copy') + '</button></div></div>' +
         '<div class="f"><label>Title</label><input class="in" data-title value="' + esc(m.title) + '"></div>' +
         (m.kind === 'image' ? '<div class="f"><label>Alt text</label><textarea class="in" rows="2" data-alt>' + esc(m.alt) + '</textarea><p class="f__help">Describe the image for accessibility and SEO.</p></div>' : '') +
-        '<div class="pub__row">' + (can('media.upload') ? '<button class="btn btn--primary" data-msave>' + ic('check') + 'Save</button>' : '') + '<a class="btn btn--ghost" href="' + esc(m.url) + '" target="_blank" rel="noopener">' + ic('external') + 'Open</a>' + (can('media.delete') || m.uploaded_by === S.user.id ? '<button class="btn btn--danger btn--icon" data-mdel1 title="Delete">' + ic('trash') + '</button>' : '') + '</div></div></div>';
+        '<div class="pub__row">' + (can('media.upload') ? '<button class="btn btn--primary" data-msave>' + ic('check') + 'Save</button>' : '') + '<a class="btn btn--ghost" href="' + esc(m.url) + '" target="_blank" rel="noopener">' + ic('external') + 'Open</a>' + (can('media.delete') || m.uploaded_by === S.user.id ? '<button class="btn btn--danger btn--icon" data-mdel1 title="Delete">' + ic('trash') + '</button>' : '') + '</div>' +
+        (can('media.upload') && (can('media.delete') || m.uploaded_by === S.user.id) ? '<div class="f"><label class="btn btn--ghost btn--block" data-mreplace>' + ic('upload') + '<span data-mreplace-label>Replace file…</span><input type="file" hidden></label><p class="f__help">Upload a new version. Every page using this file switches to the new one automatically.</p></div>' : '') +
+        '</div></div>';
       $('[data-copy]', detail).addEventListener('click', function () { navigator.clipboard && navigator.clipboard.writeText(m.abs_url).then(function () { toast('URL copied.'); }); });
       var sv = $('[data-msave]', detail);
       if (sv) sv.addEventListener('click', function () {
@@ -1116,11 +1121,23 @@
         var alt = $('[data-alt]', detail);
         api('media.update', { id: m.id, title: $('[data-title]', detail).value, alt: alt ? alt.value : '' }).then(function (u) { busy(sv, false); Object.assign(m, u); toast('Saved.'); }).catch(function (e) { busy(sv, false); toast(e.message, 'err'); });
       });
+      var rp = $('[data-mreplace] input', detail);
+      if (rp) rp.addEventListener('change', function () {
+        var file = rp.files && rp.files[0];
+        if (!file) return;
+        var lbl = $('[data-mreplace-label]', detail);
+        lbl.textContent = 'Uploading… 0%';
+        upload(file, function (p) { lbl.textContent = 'Uploading… ' + Math.round(p * 100) + '%'; }, 'media.replace', { id: m.id }).then(function (nm) {
+          toast('File replaced.' + (nm.updated_refs ? ' Updated ' + nm.updated_refs + ' place(s) that use it.' : ''));
+          browser.reload();
+          showDetail(nm);
+        }).catch(function (e) { lbl.textContent = 'Replace file…'; rp.value = ''; toast(e.message, 'err'); });
+      });
       var dl = $('[data-mdel1]', detail);
       if (dl) dl.addEventListener('click', function () {
-        confirmBox('Delete this file?', 'Pages using it will show a broken image or link.', 'Delete', true).then(function (y) {
+        confirmBox('Delete this file?', 'Any page or setting using it will be cleared. To swap in a new version instead, use Replace file.', 'Delete', true).then(function (y) {
           if (!y) return;
-          api('media.delete', { ids: [m.id] }).then(function () { toast('File deleted.'); showDetail(null); browser.reload(); }).catch(function (e) { toast(e.message, 'err'); });
+          api('media.delete', { ids: [m.id] }).then(function (r) { toast('File deleted.' + (r.cleared_refs ? ' Removed it from ' + r.cleared_refs + ' place(s) that used it.' : '')); showDetail(null); browser.reload(); }).catch(function (e) { toast(e.message, 'err'); });
         });
       });
     }

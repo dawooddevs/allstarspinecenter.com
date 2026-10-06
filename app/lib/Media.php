@@ -245,6 +245,143 @@ final class Media
         self::$map = null;
     }
 
+    /** Where content stores media paths: [table, column, label column]. Settings are handled separately. */
+    private const REF_COLUMNS = [
+        ['services', 'image', 'title'],
+        ['pages', 'image', 'title'],
+        ['providers', 'photo', 'name'],
+        ['locations', 'image', 'name'],
+    ];
+
+    /** Point every content field and setting that uses $old at $new ('' clears it). Returns how many were changed. */
+    public static function repoint(string $old, string $new): int
+    {
+        if ($old === '' || $old === $new) {
+            return 0;
+        }
+        $n = 0;
+        foreach (self::REF_COLUMNS as [$table, $col]) {
+            $n += DB::update($table, [$col => $new, 'updated_at' => now()], DB::ident($col) . ' = ?', [$old]);
+        }
+        foreach (DB::all('SELECT k FROM settings WHERE v = ?', [$old]) as $r) {
+            Settings::set($r['k'], $new);
+            $n++;
+        }
+        return $n;
+    }
+
+    /**
+     * Replace the file behind a media item: the new upload takes over the old item's alt text, title
+     * and folder, every reference is re-pointed, and the old files are removed. Returns [row, refs].
+     */
+    public static function replace(array $old, array $file, int $userId): array
+    {
+        $new = self::upload($file, $userId, (string)$old['folder']);
+        $keep = array_filter(['alt' => (string)$old['alt'], 'title' => (string)$old['title']], fn($v) => trim($v) !== '');
+        if ($keep) {
+            DB::update('media', $keep, 'id = ?', [$new['id']]);
+            $new = array_merge($new, $keep);
+        }
+        $refs = self::repoint((string)$old['path'], (string)$new['path']);
+        self::deleteFiles($old);
+        DB::delete('media', 'id = ?', [(int)$old['id']]);
+        return [$new, $refs];
+    }
+
+    /** True when $path is an uploaded file that no longer exists on disk. */
+    public static function isMissing(string $path): bool
+    {
+        return str_starts_with($path, 'uploads/') && !is_file(ROOT . '/' . $path);
+    }
+
+    /**
+     * Match images to content by file name ("shockwave-therapy.jpg" → /service/shockwave-therapy/,
+     * "page-about-us", "location-gilbert", provider names, "home-hero", "logo", …). A field that
+     * points at a deleted file counts as empty, so a fresh upload fills it without "overwrite".
+     */
+    public static function autoAssign(bool $apply, bool $overwrite, bool $includeSettings): array
+    {
+        $images = DB::all("SELECT * FROM media WHERE kind = 'image' ORDER BY id ASC");
+        $keyOf = fn(string $path): string => (string)preg_replace('/-(\d+|thumb)$/', '', slugify(pathinfo($path, PATHINFO_FILENAME)));
+        $files = [];
+        foreach ($images as $m) {
+            $files[$keyOf($m['path'])] = $m; // newest upload wins
+        }
+        $find = function (array $keys) use ($files) {
+            foreach ($keys as $k) {
+                $k = slugify((string)$k);
+                if ($k !== '' && isset($files[$k])) return $files[$k];
+            }
+            return null;
+        };
+        $matches = [];
+        $add = function (string $kind, string $label, string $current, ?array $m, callable $save) use (&$matches, $apply, $overwrite, $keyOf) {
+            if (!$m) return;
+            $broken = $current !== '' && self::isMissing($current);
+            $same = $current === $m['path'];
+            // A newer upload with the same file name (e.g. "knee-pain-relief-2.jpg") replaces the older one
+            $newer = !$same && $current !== '' && $keyOf($current) === $keyOf($m['path']);
+            $skip = $same || ($current !== '' && !$broken && !$newer && !$overwrite);
+            $matches[] = ['kind' => $kind, 'label' => $label, 'file' => basename($m['path']), 'thumb' => media_url($m['thumb'] ?: ($m['webp'] ?: $m['path'])), 'current' => $current !== '' && !$broken, 'status' => $same ? 'already set' : ($skip ? 'kept existing' : ($apply ? 'assigned' : 'will assign'))];
+            if ($apply && !$skip) $save($m);
+        };
+        $alt = function (array $m, string $text) {
+            if (trim((string)$m['alt']) === '') DB::update('media', ['alt' => mb_substr($text, 0, 250)], 'id = ?', [$m['id']]);
+        };
+        $site = setting('site_short_name');
+        foreach (DB::all('SELECT id, slug, title, menu_label, image FROM services ORDER BY sort_order') as $r) {
+            $add('Treatment', $r['title'], (string)$r['image'], $find([$r['slug'], $r['title'], $r['menu_label']]), function ($m) use ($r, $alt, $site) {
+                DB::update('services', ['image' => $m['path'], 'updated_at' => now()], 'id = ?', [$r['id']]);
+                $alt($m, $r['title'] . ' at ' . $site);
+            });
+        }
+        foreach (DB::all('SELECT id, slug, title, image FROM pages') as $r) {
+            $add('Page', $r['title'], (string)$r['image'], $find(['page-' . $r['slug']]), function ($m) use ($r, $alt, $site) {
+                DB::update('pages', ['image' => $m['path'], 'updated_at' => now()], 'id = ?', [$r['id']]);
+                $alt($m, $r['title'] . ' — ' . $site);
+            });
+        }
+        foreach (DB::all('SELECT id, slug, name, image FROM locations') as $r) {
+            $add('Location', $r['name'] . ' office', (string)$r['image'], $find(['location-' . $r['slug']]), function ($m) use ($r, $alt, $site) {
+                DB::update('locations', ['image' => $m['path'], 'updated_at' => now()], 'id = ?', [$r['id']]);
+                $alt($m, $site . ' ' . $r['name'] . ' office');
+            });
+        }
+        foreach (DB::all('SELECT id, slug, name, photo FROM providers') as $r) {
+            $add('Provider', $r['name'], (string)$r['photo'], $find(['provider-' . $r['slug'], $r['slug']]) ?? Content::providerPhotoMatch($r, $images), function ($m) use ($r, $alt) {
+                DB::update('providers', ['photo' => $m['path'], 'updated_at' => now()], 'id = ?', [$r['id']]);
+                $alt($m, $r['name']);
+            });
+        }
+        if ($includeSettings) {
+            foreach ([['hero_image', 'Homepage hero', 'home-hero'], ['about_image', 'Homepage integrated care', 'home-integrated-care'], ['testimonials_image', 'Homepage testimonials', 'home-testimonials'], ['seo_og_image', 'Social share image', 'social-share'], ['logo', 'Logo', 'logo'], ['logo_light', 'Logo (dark footer)', 'logo-light'], ['favicon', 'Favicon', 'favicon']] as [$key, $label, $file]) {
+                $add('Site', $label, (string)setting($key, ''), $find([$file]), function ($m) use ($key) { Settings::set($key, $m['path']); });
+            }
+        }
+        return ['matches' => $matches, 'files' => count($files)];
+    }
+
+    /** Clear content fields and image settings that still point at deleted files. Returns the cleared labels. */
+    public static function clearBroken(): array
+    {
+        $cleared = [];
+        foreach (self::REF_COLUMNS as [$table, $col, $label]) {
+            foreach (DB::all('SELECT id, ' . DB::ident($label) . ' AS label, ' . DB::ident($col) . ' AS path FROM ' . DB::ident($table) . ' WHERE ' . DB::ident($col) . " <> ''") as $r) {
+                if (self::isMissing((string)$r['path'])) {
+                    DB::update($table, [$col => '', 'updated_at' => now()], 'id = ?', [$r['id']]);
+                    $cleared[] = $r['label'] . ' (' . basename((string)$r['path']) . ')';
+                }
+            }
+        }
+        foreach (DB::all("SELECT k, v FROM settings WHERE v LIKE 'uploads/%'") as $r) {
+            if (self::isMissing((string)$r['v'])) {
+                Settings::set($r['k'], '');
+                $cleared[] = 'setting ' . $r['k'] . ' (' . basename((string)$r['v']) . ')';
+            }
+        }
+        return $cleared;
+    }
+
     public static function present(array $r): array
     {
         $r['id'] = (int)$r['id'];

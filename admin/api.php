@@ -408,6 +408,7 @@ try {
         case 'media.delete':
             $u = need('media.view');
             $n = 0;
+            $cleared = 0;
             foreach (array_map('intval', (array)($in['ids'] ?? [])) as $id) {
                 $row = DB::one('SELECT * FROM media WHERE id = ?', [$id]);
                 if (!$row) continue;
@@ -416,75 +417,38 @@ try {
                 }
                 Media::deleteFiles($row);
                 DB::delete('media', 'id = ?', [$id]);
+                $cleared += Media::repoint($row['path'], ''); // no page keeps pointing at a deleted file
                 Auth::log('deleted', 'media', $id, $row['original_name']);
                 $n++;
             }
-            ok(['deleted' => $n]);
+            ok(['deleted' => $n, 'cleared_refs' => $cleared]);
 
         case 'media.autoassign':
             // Match media files to content by filename, e.g. "shockwave-therapy.jpg" → /service/shockwave-therapy/
-            $u = need('content.edit');
+            need('content.edit');
             $apply = !empty($in['apply']);
-            $overwrite = !empty($in['overwrite']);
-            $files = [];
-            foreach (DB::all("SELECT * FROM media WHERE kind = 'image' ORDER BY id ASC") as $m) {
-                $key = preg_replace('/-(\d+|thumb)$/', '', slugify(pathinfo($m['path'], PATHINFO_FILENAME)));
-                $files[$key] = $m; // newest upload wins
-            }
-            $find = function (array $keys) use ($files) {
-                foreach ($keys as $k) {
-                    $k = slugify((string)$k);
-                    if ($k !== '' && isset($files[$k])) return $files[$k];
-                }
-                return null;
-            };
-            $matches = [];
-            $add = function (string $kind, string $label, string $current, ?array $m, callable $save) use (&$matches, $apply, $overwrite) {
-                if (!$m) return;
-                $same = $current === $m['path'];
-                $skip = $same || ($current !== '' && !$overwrite);
-                $matches[] = ['kind' => $kind, 'label' => $label, 'file' => basename($m['path']), 'thumb' => media_url($m['thumb'] ?: ($m['webp'] ?: $m['path'])), 'current' => $current !== '', 'status' => $same ? 'already set' : ($skip ? 'kept existing' : ($apply ? 'assigned' : 'will assign'))];
-                if ($apply && !$skip) $save($m);
-            };
-            $alt = function (array $m, string $text) {
-                if (trim((string)$m['alt']) === '') DB::update('media', ['alt' => mb_substr($text, 0, 250)], 'id = ?', [$m['id']]);
-            };
-            $site = setting('site_short_name');
-            foreach (DB::all('SELECT id, slug, title, menu_label, image FROM services ORDER BY sort_order') as $r) {
-                $add('Treatment', $r['title'], (string)$r['image'], $find([$r['slug'], $r['title'], $r['menu_label']]), function ($m) use ($r, $alt, $site) {
-                    DB::update('services', ['image' => $m['path'], 'updated_at' => now()], 'id = ?', [$r['id']]);
-                    $alt($m, $r['title'] . ' at ' . $site);
-                });
-            }
-            foreach (DB::all('SELECT id, slug, title, image FROM pages') as $r) {
-                $add('Page', $r['title'], (string)$r['image'], $find(['page-' . $r['slug']]), function ($m) use ($r, $alt, $site) {
-                    DB::update('pages', ['image' => $m['path'], 'updated_at' => now()], 'id = ?', [$r['id']]);
-                    $alt($m, $r['title'] . ' — ' . $site);
-                });
-            }
-            foreach (DB::all('SELECT id, slug, name, image FROM locations') as $r) {
-                $add('Location', $r['name'] . ' office', (string)$r['image'], $find(['location-' . $r['slug']]), function ($m) use ($r, $alt, $site) {
-                    DB::update('locations', ['image' => $m['path'], 'updated_at' => now()], 'id = ?', [$r['id']]);
-                    $alt($m, $site . ' ' . $r['name'] . ' office');
-                });
-            }
-            $images = DB::all("SELECT * FROM media WHERE kind = 'image' ORDER BY id ASC");
-            foreach (DB::all('SELECT id, slug, name, photo FROM providers') as $r) {
-                $add('Provider', $r['name'], (string)$r['photo'], $find(['provider-' . $r['slug'], $r['slug']]) ?? Content::providerPhotoMatch($r, $images), function ($m) use ($r, $alt) {
-                    DB::update('providers', ['photo' => $m['path'], 'updated_at' => now()], 'id = ?', [$r['id']]);
-                    $alt($m, $r['name']);
-                });
-            }
-            if (Auth::can('settings.manage')) {
-                foreach ([['hero_image', 'Homepage hero', 'home-hero'], ['about_image', 'Homepage integrated care', 'home-integrated-care'], ['testimonials_image', 'Homepage testimonials', 'home-testimonials'], ['seo_og_image', 'Social share image', 'social-share'], ['logo', 'Logo', 'logo'], ['logo_light', 'Logo (dark footer)', 'logo-light'], ['favicon', 'Favicon', 'favicon']] as [$key, $label, $file]) {
-                    $add('Site', $label, (string)setting($key, ''), $find([$file]), function ($m) use ($key) { Settings::set($key, $m['path']); });
-                }
-            }
+            $res = Media::autoAssign($apply, !empty($in['overwrite']), Auth::can('settings.manage'));
             if ($apply) {
-                $n = count(array_filter($matches, fn($x) => $x['status'] === 'assigned'));
+                $n = count(array_filter($res['matches'], fn($x) => $x['status'] === 'assigned'));
                 Auth::log('auto-assigned', 'media', null, plural($n, 'image', 'images'));
             }
-            ok(['matches' => $matches, 'files' => count($files)]);
+            ok($res);
+
+        case 'media.replace':
+            // Swap the file behind a media item; every page/setting using it is re-pointed to the new file
+            $u = need('media.upload');
+            $id = (int)($in['id'] ?? 0);
+            if (empty($_FILES['file'])) {
+                fail('No file received. The file may exceed the server limit of ' . ini_get('upload_max_filesize') . '.', 422);
+            }
+            $old = DB::one('SELECT * FROM media WHERE id = ?', [$id]);
+            if (!$old) fail('File not found.', 404);
+            if (!Auth::can('media.delete') && (int)$old['uploaded_by'] !== (int)$u['id']) {
+                fail('You can only replace files you uploaded.', 403);
+            }
+            [$row, $refs] = Media::replace($old, $_FILES['file'], (int)$u['id']);
+            Auth::log('replaced', 'media', (int)$row['id'], $old['original_name'] . ' → ' . $row['original_name']);
+            ok(Media::present($row) + ['updated_refs' => $refs]);
 
         // ------------------------------------------------------------ Submissions
         case 'submissions.list':
