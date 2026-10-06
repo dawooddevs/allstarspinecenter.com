@@ -89,8 +89,10 @@ main:focus { outline: none; }
 .section--flush { padding-block: 0; }
 /* Two plain (white) sections in a row would double the spacing: drop the second one's top padding */
 .section:not(.section--soft):not(.section--flush):not(.book):not(.stats):not(.section--cta) + .section:not(.section--soft):not(.section--flush):not(.book):not(.stats) { padding-top: 0; }
-.hero + .about-home { padding-top: 8px; }
+.hero + .about-home { padding-top: clamp(48px, 5.5vw, 80px); }
 .section--soft + .section--soft { padding-top: 0; }
+.hurt { padding-block: clamp(40px, 4.5vw, 64px); }
+.hurt .section-head { margin-bottom: clamp(24px, 3vw, 36px); }
 .ihero + .section:not(.section--soft):not(.book), .phero + .section:not(.section--soft):not(.book) { padding-top: clamp(32px, 4vw, 52px); }
 .section--article { padding-top: clamp(40px, 5vw, 72px); }
 
@@ -1051,25 +1053,44 @@ a.doc .doc__action { color: var(--accent); }
 .book__title { color: #fff; }
 .book__title em { color: #9cc3ff; }
 .book__lead { margin-top: 14px; font-size: 1.1rem; color: rgba(255,255,255,.78); }
-.book__cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 30px; }
-.book__card { padding: 22px; border-radius: var(--r-lg); background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-.book__card--wide { grid-column: 1 / -1; }
-.book__card h3 { margin: 14px 0 8px; font-size: 1.08rem; font-weight: 700; color: #fff; letter-spacing: -.01em; }
-.book__icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; background: rgba(255,255,255,.12); color: #fff; }
-.book__icon .icon { width: 20px; height: 20px; }
-.book__list { list-style: none; display: grid; gap: 6px; font-size: .93rem; color: rgba(255,255,255,.78); }
-.book__list strong { color: #fff; font-weight: 650; }
-.book__list a { color: rgba(255,255,255,.88); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); transition: color .2s, border-color .2s; }
-.book__list a:hover { color: #fff; border-color: #fff; }
-.book__hours { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 28px; }
-.book__hours dl { margin: 0; }
-.book__hours dt { margin-bottom: 4px; font-weight: 700; color: #fff; }
-.book__hours dd { display: flex; justify-content: space-between; gap: 12px; margin: 0; padding: 4px 0; font-size: .9rem; color: rgba(255,255,255,.78); border-bottom: 1px dashed rgba(255,255,255,.14); }
-.book__hours dd span:last-child { color: #fff; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.book__subhead { margin: 32px 0 14px; font-size: 1.15rem; font-weight: 700; color: #fff; }
-.book__benefits { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
-.book__benefits li { display: flex; align-items: flex-start; gap: 10px; font-size: .95rem; font-weight: 550; color: rgba(255,255,255,.9); }
-.book__benefits .icon { width: 18px; height: 18px; flex: none; margin-top: 2px; color: #4ade80; }
+.book__panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 30px; }
+.book__panel { position: relative; padding: 18px 14px 12px; border-radius: var(--r-lg); background: linear-gradient(160deg, rgba(255,255,255,.1), rgba(255,255,255,.035)); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+.book__panel--hours { margin-top: 14px; padding: 18px 18px 8px; }
+.book__panel-title { display: flex; align-items: center; gap: 8px; margin: 0 6px 8px; font-size: .74rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #ffb3b9; }
+.book__panel--hours .book__panel-title { margin-inline: 0; }
+.book__panel-title .icon { width: 15px; height: 15px; }
+.book__row { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 14px; color: #fff; text-decoration: none; transition: background-color .25s, transform .25s var(--ease); }
+.book__row + .book__row { margin-top: 2px; }
+.book__row:hover { color: #fff; background: rgba(255,255,255,.08); }
+.book__row-icon { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 12px; background: rgba(255,255,255,.1); color: #fff; transition: background-color .25s, color .25s; }
+.book__row-icon .icon { width: 18px; height: 18px; }
+.book__row:hover .book__row-icon { background: var(--accent); }
+.book__row-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.book__row-text small { font-size: .74rem; font-weight: 600; letter-spacing: .04em; color: rgba(255,255,255,.6); }
+.book__row-text strong { font-size: .97rem; font-weight: 650; color: #fff; overflow-wrap: anywhere; }
+.book__row-text > span { font-size: .84rem; color: rgba(255,255,255,.7); }
+.book__row-arrow { width: 16px !important; height: 16px !important; margin-left: auto; flex: none; color: rgba(255,255,255,.45); transition: transform .25s var(--ease), color .25s; }
+.book__row:hover .book__row-arrow { color: #fff; transform: translateX(3px); }
+.book__table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.book__table th, .book__table td { padding: 11px 8px; text-align: left; font-size: .92rem; border-top: 1px solid rgba(255,255,255,.1); }
+.book__table thead th { padding-top: 4px; border-top: 0; font-size: .74rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+.book__table tbody th { font-weight: 650; color: #fff; white-space: nowrap; }
+.book__table td { color: rgba(255,255,255,.88); font-weight: 550; white-space: nowrap; }
+.book__table td.is-closed { color: rgba(255,255,255,.45); font-weight: 500; }
+.book__table tr.is-today th, .book__table tr.is-today td { background: rgba(255,255,255,.07); }
+.book__table tr.is-today th { border-radius: 10px 0 0 10px; }
+.book__table tr.is-today td:last-child { border-radius: 0 10px 10px 0; }
+.book__today { display: none; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: #4ade80; color: #06331a; font-size: .66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; vertical-align: 1px; }
+.book__table tr.is-today .book__today { display: inline-block; }
+.book__hours-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 28px; }
+.book__hours-list dl { margin: 0; }
+.book__hours-list dt { margin-bottom: 4px; font-weight: 700; color: #fff; }
+.book__hours-list dd { display: flex; justify-content: space-between; gap: 12px; margin: 0; padding: 4px 0; font-size: .9rem; color: rgba(255,255,255,.8); }
+.book__subhead { margin: 30px 0 14px; font-size: 1.15rem; font-weight: 700; color: #fff; }
+.book__benefits { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 10px; }
+.book__benefits li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); font-size: .93rem; font-weight: 550; line-height: 1.35; color: rgba(255,255,255,.92); }
+.book__benefit-icon { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border-radius: 50%; background: rgba(74,222,128,.16); color: #4ade80; }
+.book__benefit-icon .icon { width: 14px; height: 14px; stroke-width: 2.6; }
 .book__form { position: relative; padding: clamp(24px, 3vw, 40px); border-radius: var(--r-xl); background: #fff; color: var(--ink); box-shadow: 0 40px 80px -30px rgba(0,0,0,.55); }
 .book__form-head { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
 .book__form-head h3 { margin: 0; font-size: 1.25rem; font-weight: 750; letter-spacing: -.02em; color: var(--ink); }
@@ -1079,8 +1100,13 @@ a.doc .doc__action { color: var(--accent); }
 @media (max-width: 1000px) {
   .book__grid { grid-template-columns: 1fr; }
 }
-@media (max-width: 560px) {
-  .book__cards, .book__hours, .book__benefits { grid-template-columns: 1fr; }
+@media (max-width: 680px) {
+  .book__panels, .book__hours-list, .book__benefits { grid-template-columns: 1fr; }
+  .book__benefits { grid-auto-rows: auto; }
+}
+@media (max-width: 420px) {
+  .book__table th, .book__table td { padding-inline: 4px; font-size: .84rem; }
+  .book__today { display: none !important; }
 }
 
 /* Videos (patient stories, testimonials) */

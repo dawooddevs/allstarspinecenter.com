@@ -384,6 +384,12 @@
     });
   });
 
+  // Office hours table: highlight today's row (visitor's local day; the page may be cached)
+  var isoToday = ((new Date().getDay() + 6) % 7) + 1;
+  $$('[data-iso-days]').forEach(function (tr) {
+    if (tr.getAttribute('data-iso-days').split(',').indexOf(String(isoToday)) !== -1) tr.classList.add('is-today');
+  });
+
   // Homepage testimonials: one quote at a time with previous/next arrows
   $$('[data-tshow]').forEach(function (box) {
     var slides = $$('.tshow__slide', box);

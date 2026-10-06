@@ -348,6 +348,57 @@ final class Content
         return json_list($loc['hours'] ?? '[]');
     }
 
+    /**
+     * Combined weekly hours for several locations, grouped into rows of consecutive days with the
+     * same hours everywhere: [['days' => 'Tue – Wed', 'iso' => [2, 3], 'times' => [slug => '7:30 AM – 5:30 PM' | null]], …].
+     * Built from the schema.org strings ("Mo-Th 07:30-17:30"); returns [] if any location lacks them.
+     */
+    public static function hoursTable(array $locs): array
+    {
+        $codes = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+        $names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        $fmt = function (string $t): string {
+            [$h, $m] = array_map('intval', explode(':', $t));
+            return ($h % 12 ?: 12) . ':' . str_pad((string)$m, 2, '0', STR_PAD_LEFT) . ($h < 12 ? ' AM' : ' PM');
+        };
+        $week = [];
+        foreach ($locs as $l) {
+            $days = array_fill(0, 7, null);
+            foreach (self::hours($l) as $h) {
+                if (empty($h['schema'])) {
+                    if (stripos((string)($h['time'] ?? ''), 'closed') === false) return [];
+                    continue;
+                }
+                foreach ((array)$h['schema'] as $spec) {
+                    if (!preg_match('/^([A-Za-z,\-]+)\s+(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/', trim($spec), $m)) return [];
+                    foreach (explode(',', $m[1]) as $part) {
+                        $range = explode('-', $part);
+                        $a = array_search($range[0], $codes, true);
+                        $b = array_search($range[1] ?? $range[0], $codes, true);
+                        if ($a === false || $b === false) return [];
+                        for ($d = $a; $d <= $b; $d++) $days[$d] = $fmt($m[2]) . ' – ' . $fmt($m[3]);
+                    }
+                }
+            }
+            $week[$l['slug']] = $days;
+        }
+        $rows = [];
+        for ($d = 0; $d < 7; $d++) {
+            $times = array_map(fn($days) => $days[$d], $week);
+            $last = count($rows) - 1;
+            if ($last >= 0 && $rows[$last]['times'] === $times) {
+                $rows[$last]['to'] = $d;
+            } else {
+                $rows[] = ['from' => $d, 'to' => $d, 'times' => $times];
+            }
+        }
+        return array_map(fn($r) => [
+            'days' => $names[$r['from']] . ($r['to'] > $r['from'] ? ' – ' . $names[$r['to']] : ''),
+            'iso' => range($r['from'] + 1, $r['to'] + 1), // ISO weekday numbers, for highlighting "today" in the browser
+            'times' => $r['times'],
+        ], $rows);
+    }
+
     public static function mapsDirections(array $loc): string
     {
         if (!empty($loc['directions_url'])) {

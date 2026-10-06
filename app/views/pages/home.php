@@ -343,44 +343,51 @@ $svc = fn($slug) => url('service/' . $slug . '/');
       <p class="eyebrow eyebrow--light">Book your visit</p>
       <h2 id="book-title" class="h2 book__title">Choose a Preferred Time. <em>We'll Confirm It With You.</em></h2>
       <p class="book__lead">Requests are held for 48 hours until confirmed by our office.</p>
-      <div class="book__cards">
-        <div class="book__card">
-          <span class="book__icon"><?= icon('message-square') ?></span>
-          <h3>Contact Us</h3>
-          <ul class="book__list">
-            <?php if ($email = setting('email')): ?><li><a href="mailto:<?= e($email) ?>"><?= e($email) ?></a></li><?php endif; ?>
-            <li>Call: <a href="<?= e(tel_href($phone)) ?>"><?= e($phone) ?></a></li>
-            <li><a href="<?= e(sms_href(setting('sms_phone') ?: $phone)) ?>">Text us 24/7</a></li>
-          </ul>
+      <?php $sms = setting('sms_phone') ?: $phone; $email = setting('email'); $hoursRows = Content::hoursTable($locations); ?>
+      <div class="book__panels">
+        <div class="book__panel">
+          <p class="book__panel-title"><?= icon('message-square') ?>Get in touch</p>
+          <a class="book__row" href="<?= e(tel_href($phone)) ?>"><span class="book__row-icon"><?= icon('phone') ?></span><span class="book__row-text"><small>Call us</small><strong><?= e($phone) ?></strong></span><?= icon('arrow-right', 'icon book__row-arrow') ?></a>
+          <a class="book__row" href="<?= e(sms_href($sms)) ?>"><span class="book__row-icon"><?= icon('message') ?></span><span class="book__row-text"><small>Text us 24/7</small><strong><?= e($sms) ?></strong></span><?= icon('arrow-right', 'icon book__row-arrow') ?></a>
+          <?php if ($email): ?>
+          <a class="book__row" href="mailto:<?= e($email) ?>"><span class="book__row-icon"><?= icon('mail') ?></span><span class="book__row-text"><small>Email</small><strong><?= str_replace(['@', '-'], ['<wbr>@', '&#8209;'], e($email)) ?></strong></span><?= icon('arrow-right', 'icon book__row-arrow') ?></a>
+          <?php endif; ?>
         </div>
-        <div class="book__card">
-          <span class="book__icon"><?= icon('map-pin') ?></span>
-          <h3>Address</h3>
-          <ul class="book__list">
-            <?php foreach ($locations as $l): ?>
-            <li><strong><?= e($l['name']) ?>:</strong> <a href="<?= e(Content::mapsDirections($l)) ?>" target="_blank" rel="noopener"><?= e($l['address']) ?>, <?= e($l['city']) ?>, <?= e($l['state']) ?></a></li>
-            <?php endforeach; ?>
-          </ul>
+        <div class="book__panel">
+          <p class="book__panel-title"><?= icon('map-pin') ?>Our offices</p>
+          <?php foreach ($locations as $l): ?>
+          <a class="book__row" href="<?= e(Content::mapsDirections($l)) ?>" target="_blank" rel="noopener"><span class="book__row-icon"><?= icon('building') ?></span><span class="book__row-text"><small><?= e($l['name']) ?> office</small><strong><?= e($l['address']) ?></strong><span><?= e($l['city'] . ', ' . $l['state'] . ' ' . $l['zip']) ?></span></span><?= icon('arrow-up-right', 'icon book__row-arrow') ?></a>
+          <?php endforeach; ?>
         </div>
-        <div class="book__card book__card--wide">
-          <span class="book__icon"><?= icon('clock') ?></span>
-          <h3>Office Hours</h3>
-          <div class="book__hours">
-            <?php foreach ($locations as $l): ?>
-            <dl>
-              <dt><?= e($l['name']) ?></dt>
-              <?php foreach (Content::hours($l) as $h): if (stripos((string)$h['time'], 'closed') !== false) continue; ?>
-              <dd><span><?= e($h['days']) ?></span><span><?= e($h['time']) ?></span></dd>
+      </div>
+      <div class="book__panel book__panel--hours">
+        <p class="book__panel-title"><?= icon('clock') ?>Office hours</p>
+        <?php if ($hoursRows): ?>
+        <table class="book__table">
+          <thead><tr><th scope="col"><span class="sr-only">Days</span></th><?php foreach ($locations as $l): ?><th scope="col"><?= e($l['name']) ?></th><?php endforeach; ?></tr></thead>
+          <tbody>
+            <?php foreach ($hoursRows as $r): ?>
+            <tr data-iso-days="<?= e(implode(',', $r['iso'])) ?>">
+              <th scope="row"><?= e($r['days']) ?><span class="book__today">Today</span></th>
+              <?php foreach ($locations as $l): $t = $r['times'][$l['slug']] ?? null; ?>
+              <td<?= $t ? '' : ' class="is-closed"' ?>><?= e($t ?? 'Closed') ?></td>
               <?php endforeach; ?>
-            </dl>
+            </tr>
             <?php endforeach; ?>
-          </div>
+          </tbody>
+        </table>
+        <?php else: ?>
+        <div class="book__hours-list">
+          <?php foreach ($locations as $l): ?>
+          <dl><dt><?= e($l['name']) ?></dt><?php foreach (Content::hours($l) as $h): ?><dd><span><?= e($h['days']) ?></span><span><?= e($h['time']) ?></span></dd><?php endforeach; ?></dl>
+          <?php endforeach; ?>
         </div>
+        <?php endif; ?>
       </div>
       <h3 class="book__subhead">Benefits of scheduling an appointment</h3>
       <ul class="book__benefits">
         <?php foreach (['We analyze the problems you are facing', 'Complimentary benefits check', 'Flexible scheduling', 'Appointments without extended waiting', 'Text support at any time', 'Choose providers you trust'] as $b): ?>
-        <li><?= icon('check') ?><?= e($b) ?></li>
+        <li><span class="book__benefit-icon"><?= icon('check') ?></span><?= e($b) ?></li>
         <?php endforeach; ?>
       </ul>
     </div>
